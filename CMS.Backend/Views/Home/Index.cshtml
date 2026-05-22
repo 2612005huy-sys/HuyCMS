@@ -1,0 +1,50 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "Trang chủ CMS";
+}
+
+<div class="p-5 mb-4 bg-light rounded-3 text-center shadow-sm">
+    <div class="container-fluid py-4">
+        <h1 class="display-5 fw-bold text-primary">📰 HỆ THỐNG QUẢN TRỊ NỘI DUNG CMS</h1>
+        <p class="col-md-12 fs-4 text-secondary">Chào mừng bạn đến với trang quản trị. Khám phá các bài viết mới nhất vừa được cập nhật hệ thống.</p>
+    </div>
+</div>
+
+<div class="container mt-5 mb-5">
+    <h2 class="text-center mb-4 text-danger font-weight-bold">🔥 3 BẢN TIN MỚI NHẤT</h2>
+    <hr style="width: 100px; margin: 0 auto 40px auto; border-top: 3px solid #dc3545;" />
+
+    <div class="row g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100 border-0">
+                    <img src="@item.ImageUrl" class="card-img-top" alt="Thumbnail" style="height: 200px; object-fit: cover;">
+
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2">
+                            <span class="badge bg-primary text-uppercase">@item.Category.Name</span>
+                        </div>
+
+                        <h5 class="card-title font-weight-bold text-dark mb-3" style="height: 48px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.5;">
+                            @item.Title
+                        </h5>
+
+                        <p class="card-text text-muted text-truncate mb-4">@item.Content</p>
+
+                        <div class="mt-auto">
+                            <a href="/Post/Details/@item.Id" class="btn btn-sm btn-outline-danger w-100 font-weight-bold">
+                                Đọc tiếp bài viết →
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-transparent text-muted small border-0">
+                        📅 Ngày đăng: @item.CreatedDate.ToString("dd/MM/yyyy")
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

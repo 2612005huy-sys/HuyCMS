@@ -1,0 +1,53 @@
+﻿@model IEnumerable<dynamic>
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Quản lý thành viên";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-dark font-weight-bold">👥 QUẢN LÝ THÀNH VIÊN HỆ THỐNG</h2>
+        <a asp-action="Create" class="btn btn-success font-weight-bold">
+            <i class="bi bi-plus-circle"></i> Thêm thành viên mới
+        </a>
+    </div>
+
+    <table class="table table-bordered table-striped align-middle shadow-sm bg-white">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Tên Đăng Nhập (Username)</th>
+                <th>Họ Và Tên</th>
+                <th>Mật Khẩu Hệ Thống</th>
+                <th>Quyền Hạn (Role)</th>
+                <th class="text-center" style="width: 180px;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td><strong class="text-primary">@user.Username</strong></td>
+                    <td>@user.FullName</td>
+                    <td class="text-muted">•••••••• (Thô: @user.PasswordHash)</td>
+                    <td>
+                        @if (user.Role == "Admin")
+                        {
+                            <span class="badge bg-danger p-2 shadow-sm">Quản trị viên (Admin)</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-info text-dark p-2 shadow-sm">Biên tập viên (Editor)</span>
+                        }
+                    </td>
+                    <td class="text-center">
+                        <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-warning fw-bold me-1">Sửa</a>
+                        <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger fw-bold"
+                           onclick="return confirm('Bạn có chắc chắn muốn xóa thành viên @user.Username không?')">Xóa</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

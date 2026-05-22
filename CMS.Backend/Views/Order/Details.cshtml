@@ -1,0 +1,31 @@
+﻿@model IEnumerable<dynamic>
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="/Order" class="btn btn-secondary btn-sm">< Quay lại danh sách đơn</a>
+    </div>
+
+    <h2 class="mb-4 text-success">📦 CHI TIẾT ĐƠN HÀNG #@ViewBag.OrderId</h2>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Mã Sản Phẩm (ProductId)</th>
+                <th>Số Lượng</th>
+                <th>Giá Lúc Mua</th>
+                <th>Thành Tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.ProductId</td>
+                    <td>@item.Quantity</td>
+                    <td>@string.Format("{0:N0} đ", item.Price)</td>
+                    <td class="text-danger">@string.Format("{0:N0} đ", (item.Price * item.Quantity))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
