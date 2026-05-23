@@ -1,34 +1,39 @@
-﻿using CMS.Data;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CMS.Data;
 using System.Linq;
 
 namespace CMS.Backend.Controllers
 {
-    public class ProductController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public ProductController(ApplicationDbContext context)
+        public ProductsController(ApplicationDbContext context)
         {
             _context = context;
         }
-        public IActionResult Details(int id)
-        {
-            // Sử dụng .Include để nạp kèm dữ liệu của bảng Category sang View
-            var post = _context.Posts
-                             .Include(p => p.Category)
-                             .FirstOrDefault(p => p.Id == id);
 
-            if (post == null) return NotFound();
-
-            return View(post);
-        }
-        public IActionResult Index()
+        // API lấy toàn bộ sản phẩm và số lượng tồn kho (GET: api/products)
+        [HttpGet]
+        public IActionResult GetAllProducts()
         {
-            // Lấy danh sách sản phẩm từ SQL Server
-            var products = _context.Products.ToList();
-            return View(products);
+            var products = _context.Products
+                .OrderByDescending(p => p.Id)
+                .Select(p => new {
+                    p.Id,
+                    p.Name,
+                    p.Description,
+                    p.Price,
+                    p.StockQuantity,
+                    p.ImageUrl,
+                    CategoryName = p.CategoryProduct.Name // Lấy tên danh mục sản phẩm
+                })
+                .ToList();
+
+            return Ok(products);
         }
     }
 }

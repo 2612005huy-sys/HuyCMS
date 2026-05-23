@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization; // 🌟 BỔ SUNG: Thư viện bắt buộc để dùng thuộc tính khóa bảo mật
 using CMS.Data;
 using CMS.Data.Entities;
 using System.Linq;
 
 namespace CMS.Backend.Controllers
 {
+    [Authorize(Roles = "Admin")] // 🔒 Ổ KHÓA TỐI CAO: Chỉ tài khoản có vai trò chính xác là "Admin" mới được mở cửa vào đây
     public class UserController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -67,7 +69,7 @@ namespace CMS.Backend.Controllers
             }
             else
             {
-                model.PasswordHash = existingUser.PasswordHash; // Giữ nguyên mật khẩu cũ trong DB
+                model.PasswordHash = existingUser.PasswordHash; // Giữ nguyên mật khẩu cũ trong DB để tránh bị đè thành rỗng
             }
 
             _context.Users.Update(model);

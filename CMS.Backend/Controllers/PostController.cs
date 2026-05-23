@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using CMS.Data;
 using CMS.Data.Entities;
 using System;
@@ -9,6 +10,7 @@ using System.Linq;
 
 namespace CMS.Backend.Controllers
 {
+    [Authorize] // 🔒 Khóa bảo mật chung cho toàn bộ file
     public class PostController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -18,19 +20,23 @@ namespace CMS.Backend.Controllers
             _context = context;
         }
 
-        // Danh sách bài viết quản trị (Đã sửa lỗi link trống /Post)
+        // =========================================================================
+        // 🛠️ PHẦN 1: CÁC HÀM TRẢ VỀ GIAO DIỆN QUẢN TRỊ (MVC CŨ CỦA HUY - GIỮ NGUYÊN)
+        // =========================================================================
+
+        // Đường dẫn giao diện: https://localhost:7005/Post
         public IActionResult Index(int? id)
         {
             if (id == null)
             {
                 var allPosts = _context.Posts.OrderByDescending(p => p.CreatedDate).Include(p => p.Category).ToList();
-                return View("Index", allPosts); // Gọi chính xác file Index.cshtml
+                return View("Index", allPosts);
             }
             var filteredPosts = _context.Posts.Where(p => p.CategoryId == id).OrderByDescending(p => p.CreatedDate).Include(p => p.Category).ToList();
             return View("Index", filteredPosts);
         }
 
-        // Chi tiết bài viết 
+        // Chi tiết bài viết giao diện admin
         public IActionResult Details(int id)
         {
             var post = _context.Posts.Include(p => p.Category).FirstOrDefault(p => p.Id == id);
@@ -46,7 +52,7 @@ namespace CMS.Backend.Controllers
             return View();
         }
 
-        // THÊM BÀI VIẾT (POST) + UPLOAD ẢNH VẬT LÝ VÀO WWWROOT
+        // THÊM BÀI VIẾT (POST)
         [HttpPost]
         public IActionResult Create(Post model, IFormFile uploadImage)
         {
@@ -79,7 +85,7 @@ namespace CMS.Backend.Controllers
             return View(post);
         }
 
-        // CHỈNH SỬA BÀI VIẾT (POST) + GIỮ ẢNH CŨ NẾU KHÔNG ĐỔI
+        // CHỈNH SỬA BÀI VIẾT (POST)
         [HttpPost]
         public IActionResult Edit(Post model, IFormFile uploadImage)
         {
@@ -120,6 +126,46 @@ namespace CMS.Backend.Controllers
                 _context.SaveChanges();
             }
             return RedirectToAction("Index");
+        }
+
+        // =========================================================================
+        // 🌟 PHẦN 2: CÁC CỔNG API TRẢ VỀ DỮ LIỆU JSON (BUỔI 6 - THÊM VÀO ĐÁY FILE)
+        // =========================================================================
+
+        // 1. API lấy toàn bộ danh sách chữ thô JSON (Đường dẫn: https://localhost:7005/Post/GetJsonAll)
+        [HttpGet]
+        [AllowAnonymous] // Cho phép ReactJS lấy dữ liệu công khai không cần đăng nhập
+        public IActionResult GetJsonAll()
+        {
+            var posts = _context.Posts
+                .OrderByDescending(p => p.Id)
+                .Select(p => new {
+                    p.Id,
+                    p.Title,
+                    p.ImageUrl,
+                    p.CreatedDate,
+                    CategoryName = p.Category != null ? p.Category.Name : "Chưa phân loại"
+                })
+                .ToList();
+
+            return Ok(posts); // Trả về dữ liệu JSON mã 200
+        }
+
+        // 2. API lấy chi tiết 1 bài viết dạng JSON (Đường dẫn: https://localhost:7005/Post/GetJsonDetail/5)
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult GetJsonDetail(int id)
+        {
+            var post = _context.Posts
+                .Include(p => p.Category)
+                .FirstOrDefault(p => p.Id == id);
+
+            if (post == null)
+            {
+                return NotFound(new { message = "Không tìm thấy bài viết này" });
+            }
+
+            return Ok(post);
         }
     }
 }
