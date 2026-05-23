@@ -1,11 +1,14 @@
-﻿// sinh vien: trieu quoc huy
-// mssv: 2123110151
-// ngay tao: 15/5/26
+﻿// =========================================================================
+// 👤 Sinh viên: Triệu Quốc Huy
+// 🆔 MSSV: 2123110151
+// 📅 Ngày tạo: 15/05/2026
+// 📝 Chức năng: Quản lý danh mục bài viết (Bảo mật tối cao & Chống sập dữ liệu)
+// =========================================================================
 
 using CMS.Data;
 using CMS.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization; // 🌟 Thêm thư viện phân quyền
+using Microsoft.AspNetCore.Authorization; // 🌟 Thư viện phân quyền hệ thống
 using System.Linq;
 
 namespace CMS.Backend.Controllers
@@ -28,13 +31,26 @@ namespace CMS.Backend.Controllers
         }
 
         // GET: /Category/Delete/5
+        // 🌟 ĐÃ SỬA: Chống sập hệ thống (Crash) khi xóa danh mục cha đang có bài viết liên quan
         public IActionResult Delete(int id)
         {
+            // 1. Kiểm tra xem có bài viết nào thuộc danh mục này không
+            bool hasRelatedPosts = _context.Posts.Any(p => p.CategoryId == id);
+
+            if (hasRelatedPosts)
+            {
+                // Nếu có bài viết bám vào -> Tạo thông báo lỗi gửi ra giao diện Index mà không xóa
+                TempData["ErrorMessage"] = "Không thể xóa! Danh mục này đang chứa bài viết dữ liệu thật. Vui lòng chuyển hoặc xóa các bài viết đó trước.";
+                return RedirectToAction("Index");
+            }
+
+            // 2. Nếu an toàn (Không có bài viết nào liên quan) -> Tiến hành xóa bình thường
             var category = _context.Categories.Find(id);
             if (category != null)
             {
                 _context.Categories.Remove(category);
                 _context.SaveChanges();
+                TempData["SuccessMessage"] = "Xóa danh mục thành công!";
             }
             return RedirectToAction("Index");
         }
@@ -55,9 +71,14 @@ namespace CMS.Backend.Controllers
         [HttpPost]
         public IActionResult Edit(Category model)
         {
-            _context.Categories.Update(model);
-            _context.SaveChanges();
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                _context.Categories.Update(model);
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Cập nhật danh mục thành công!";
+                return RedirectToAction("Index");
+            }
+            return View(model);
         }
 
         // GET: /Category/Create
@@ -71,9 +92,14 @@ namespace CMS.Backend.Controllers
         [HttpPost]
         public IActionResult Create(Category model)
         {
-            _context.Categories.Add(model);
-            _context.SaveChanges();
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                _context.Categories.Add(model);
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = "Thêm danh mục mới thành công!";
+                return RedirectToAction("Index");
+            }
+            return View(model);
         }
     }
 }
