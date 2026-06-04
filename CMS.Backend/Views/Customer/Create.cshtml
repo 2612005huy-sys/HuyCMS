@@ -1,0 +1,42 @@
+﻿@model CMS.Data.Entities.Customer
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Thêm khách hàng";
+}
+
+<div class="container mt-4" style="max-width: 600px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0 font-weight-bold"><i class="bi bi-person-plus"></i> THÊM TÀI KHOẢN KHÁCH HÀNG</h4>
+        </div>
+        <div class="card-body bg-white">
+            <form asp-action="Create" method="post">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Họ và tên:</label>
+                    <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên..." required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Email đăng nhập:</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Số điện thoại:</label>
+                    <input asp-for="Phone" class="form-control" placeholder="Nhập số điện thoại..." />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Địa chỉ giao hàng:</label>
+                    <input asp-for="Address" class="form-control" placeholder="Nhập địa chỉ cư trú..." />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Mật khẩu khởi tạo:</label>
+                    <input asp-for="Password" type="text" class="form-control" value="123456" required />
+                </div>
+                <hr />
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                    <button type="submit" class="btn btn-success font-weight-bold">💾 Lưu hệ thống</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

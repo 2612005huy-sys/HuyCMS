@@ -11,6 +11,9 @@
         </div>
         <div class="card-body">
             <form asp-action="Create" method="post" enctype="multipart/form-data">
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 fw-bold"></div>
+
                 <div class="row">
                     <div class="col-md-8">
                         <div class="mb-3">
@@ -20,6 +23,8 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Nội dung chi tiết:</label>
                             <textarea asp-for="Content" id="Content" class="form-control" rows="10" placeholder="Viết nội dung tại đây..."></textarea>
+                            
+                            <span asp-validation-for="Content" class="text-danger small fw-bold"></span>
                         </div>
                     </div>
 
@@ -55,6 +60,15 @@
     <script>
         ClassicEditor
             .create(document.querySelector('#Content'))
-            .catch(error => { console.error(error); });
+            .then(editor => {
+                // 🌟 SỬA ĐẦY ĐỦ: Lắng nghe sự kiện thay đổi dữ liệu của CKEditor
+                // Mỗi khi gõ chữ, dữ liệu HTML sẽ lập tức nạp vào textarea gốc mang tên 'Content'
+                editor.model.document.on('change:data', () => {
+                    document.querySelector('#Content').value = editor.getData();
+                });
+            })
+            .catch(error => { 
+                console.error(error); 
+            });
     </script>
 }

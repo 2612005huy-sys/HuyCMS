@@ -1,42 +1,82 @@
 ﻿@model IEnumerable<CMS.Data.Entities.Category>
+@* =========================================================================
+   👤 Sinh viên: Triệu Quốc Huy
+   🆔 MSSV: 2123110151
+   📅 Ngày tạo/cập nhật: 15/05/2026
+   📝 Chức năng: Giao diện Danh sách danh mục (Hiển thị banner cảnh báo xóa an toàn)
+   ========================================================================= *@
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Quản lý danh mục";
+}
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary mb-0">📑 DANH SÁCH DANH MỤC (DỮ LIỆU THẬT)</h2>
-        <a href="/Category/Create" class="btn btn-success font-weight-bold">
-            ➕ Thêm danh mục mới
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-dark font-weight-bold">📑 DANH SÁCH DANH MỤC HỆ THỐNG</h2>
+        <a asp-action="Create" class="btn btn-success font-weight-bold shadow-sm">
+            <i class="bi bi-plus-circle"></i> Thêm danh mục mới
         </a>
     </div>
 
-    <table class="table table-bordered table-striped table-hover shadow-sm">
-        <thead class="table-dark">
-            <tr>
-                <th style="width: 10%;">ID</th>
-                <th style="width: 25%;">Tên danh mục</th>
-                <th style="width: 45%;">Mô tả chi tiết</th>
-                <th style="width: 20%; text-align: center;">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td><strong>@item.Name</strong></td>
-                    <td class="text-secondary">@item.Description</td>
-                    <td class="text-center">
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning me-1">
-                            Sửa
-                        </a>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4 border-start border-danger border-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-2 text-danger"></i>
+                <div>
+                    <strong class="text-danger">Không thể thực hiện:</strong> @TempData["ErrorMessage"]
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
-                        <a asp-action="Delete" asp-route-id="@item.Id"
-                           class="btn btn-sm btn-outline-danger"
-                           onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này?')">
-                            Xóa
-                        </a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4 border-start border-success border-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-check-circle-fill fs-4 me-2 text-success"></i>
+                <div>
+                    <strong class="text-success">Thành công:</strong> @TempData["SuccessMessage"]
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    <div class="card shadow-sm border-0 bg-white">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="text-center" style="width: 10%;">ID</th>
+                        <th style="width: 25%;">Tên danh mục</th>
+                        <th style="width: 45%;">Mô tả chi tiết</th>
+                        <th class="text-center" style="width: 20%;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center font-weight-bold text-secondary">@item.Id</td>
+                            <td><strong class="text-primary">@item.Name</strong></td>
+                            <td class="text-secondary text-wrap">@item.Description</td>
+                            <td class="text-center">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning font-weight-bold me-1">
+                                    Sửa
+                                </a>
+
+                                <a asp-action="Delete" asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-danger font-weight-bold"
+                                   onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này?')">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

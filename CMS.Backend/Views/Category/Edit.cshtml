@@ -1,27 +1,40 @@
 ﻿@model CMS.Data.Entities.Category
+@* =========================================================================
+
+   ========================================================================= *@
+
+@{
+    // 🌟 BỔ SUNG: Ép nhận Layout Admin để giữ nguyên thanh Sidebar bên trái
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Chỉnh sửa danh mục";
+}
 
 <div class="container mt-4" style="max-width: 600px;">
     <div class="card shadow-sm border-warning">
-        <div class="card-header bg-warning text-dark">
+        <div class="card-header bg-warning text-dark d-flex align-items-center">
             <h4 class="mb-0 font-weight-bold">📝 CHỈNH SỬA DANH MỤC</h4>
         </div>
-        <div class="card-body">
+        <div class="card-body bg-white">
             <form asp-action="Edit" method="post">
                 <input type="hidden" asp-for="Id" />
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold font-weight-bold">Tên danh mục:</label>
+                    <label class="form-label fw-bold">Tên danh mục:</label>
                     <input asp-for="Name" class="form-control" placeholder="Nhập tên danh mục..." required />
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold font-weight-bold">Mô tả:</label>
+                    <label class="form-label fw-bold">Mô tả:</label>
                     <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập mô tả..." required></textarea>
                 </div>
 
-                <div class="d-flex justify-content-between">
-                    <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
-                    <button type="submit" class="btn btn-warning font-weight-bold">💾 Cập nhật thay đổi</button>
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        ❌ Hủy bỏ
+                    </a>
+                    <button type="submit" class="btn btn-warning font-weight-bold text-dark">
+                        💾 Cập nhật thay đổi
+                    </button>
                 </div>
             </form>
         </div>

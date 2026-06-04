@@ -1,0 +1,49 @@
+﻿@model CMS.Data.Entities.Order
+@* =========================================================================
+   👤 Sinh viên: Triệu Quốc Huy | MSSV: 2123110151
+   📅 Ngày tạo/cập nhật: 23/05/2026
+   📝 Chức năng: Giao diện Xử lý cập nhật thủ công trạng thái và ghi chú đơn hàng
+   ========================================================================= *@
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Xử lý hóa đơn";
+}
+
+<div class="container mt-4" style="max-width: 600px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0 font-weight-bold"><i class="bi bi-pencil-square"></i> CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG #@Model.Id</h4>
+        </div>
+        <div class="card-body bg-white">
+            <form asp-action="UpdateStatus" method="get">
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="mb-3 bg-light p-3 rounded border">
+                    <p class="mb-1 fw-bold text-secondary">Mã định danh đơn hàng: <span class="text-dark">#@Model.Id</span></p>
+                    <p class="mb-1 fw-bold text-secondary">Ngày đặt mua: <span class="text-dark">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span></p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark">Trạng thái vận đơn hiện tại:</label>
+                    <select name="status" class="form-select fw-bold">
+                        <!option value="0" @(Model.Status == 0 ? "selected" : "") class="text-warning">⏱️ Chờ duyệt đơn hàng</!option>
+                        <!option value="1" @(Model.Status == 1 ? "selected" : "") class="text-primary">🚚 Đang giao hàng</!option>
+                        <!option value="2" @(Model.Status == 2 ? "selected" : "") class="text-success">✅ Đã giao thành công</!option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark">Ghi chú điều phối (Nếu có):</label>
+                    <textarea asp-for="Notes" name="Notes" class="form-control" rows="4" placeholder="Nhập lý do hủy đơn hoặc thông tin shipper đặt hàng..."></textarea>
+                </div>
+
+                <hr />
+                <div class="d-flex justify-content-between mt-3">
+                    <a asp-action="Index" class="btn btn-secondary">❌ Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary font-weight-bold">💾 Cập nhật hóa đơn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
