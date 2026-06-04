@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,6 +53,8 @@ app.UseCors("AllowAll");
 app.UseAuthentication(); // Bước 1: Xác nhận danh tính "Anh là ai?" (Cookie/Token)
 app.UseAuthorization();  // Bước 2: Xác nhận quyền hạn "Anh được làm gì?" (Admin/Editor)
 // =========================================================================
+
+app.MapControllers(); // 🌟 Định tuyến cho các API Controller sử dụng Attribute Routing
 
 app.MapControllerRoute(
     name: "default",
