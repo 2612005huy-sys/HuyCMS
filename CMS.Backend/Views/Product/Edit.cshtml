@@ -3,7 +3,7 @@
    👤 Sinh viên: Triệu Quốc Huy
    🆔 MSSV: 2123110151
    📅 Ngày tạo/cập nhật: 23/05/2026
-   📝 Chức năng: FILE HOÀN CHỈNH - Sửa sản phẩm (Đã thêm hidden giữ ảnh cũ)
+   📝 Chức năng: FILE HOÀN CHỈNH - Sửa sản phẩm (Đã tích hợp CKEditor nhập chi tiết)
    ========================================================================= *@
 
 @{
@@ -30,7 +30,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Mô tả sản phẩm:</label>
+                            <label class="form-label fw-bold">Mô tả & Thông tin chi tiết sản phẩm:</label>
                             <textarea asp-for="Description" class="form-control" rows="10" placeholder="Thông số, tính năng sản phẩm..."></textarea>
                         </div>
                     </div>
@@ -81,4 +81,22 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+<script src="https://cdn.jsdelivr.net/npm/@@ckeditor/ckeditor5-build-classic/build/ckeditor.js"></script>
+    
+    <script>
+        ClassicEditor
+            .create(document.querySelector('#Description'), {
+                placeholder: 'Nhập thông tin chi tiết phom dáng, chất liệu vải, thông số kỹ thuật hoặc hướng dẫn bảo quản sản phẩm...'
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
+    
+    <style>
+        .ck-editor__editable_inline {
+            min-height: 280px;
+        }
+    </style>
 }
