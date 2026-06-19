@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
-import api from '../api.js';
+import api from '../../api.js';
 
 // Hàm strip HTML lấy plain text
 function stripHtml(html) {
@@ -14,12 +14,14 @@ function BlogDetail() {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     api.get(`/api/posts/${id}`)
       .then(res => setPost(res.data))
       .catch(err => {
-        console.error('Lỗi tải bài viết:', err);
+        console.error('Lỗi API:', err);
+        setErrorMsg(err.message + " | " + (err.response?.data?.message || err.response?.statusText || ""));
         setPost(null);
       })
       .finally(() => setLoading(false));
@@ -37,6 +39,7 @@ function BlogDetail() {
     return (
       <div style={{ textAlign: 'center', padding: '60px 20px' }}>
         <h2 style={{ marginBottom: '16px' }}>Không tìm thấy bài viết!</h2>
+        <p style={{ color: 'red', marginBottom: '20px' }}>Chi tiết lỗi: {errorMsg}</p>
         <Link to="/" className="cta-button" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
           <ArrowLeft size={16} /> Về trang chủ
         </Link>

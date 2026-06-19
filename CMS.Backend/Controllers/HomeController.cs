@@ -1,12 +1,14 @@
-﻿using CMS.Backend.Models;
+using CMS.Backend.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // Bắt buộc phải có để dùng được lệnh .Include()
-using CMS.Data; // Thư mục chứa ApplicationDbContext của bạn
+using Microsoft.EntityFrameworkCore;
+using CMS.Data;
 using System.Diagnostics;
-using System.Linq; // Bắt buộc phải có để dùng được lệnh .Take(3) và .OrderByDescending()
+using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CMS.Backend.Controllers
 {
+    [Authorize(Roles = "Admin,Editor")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -23,15 +25,32 @@ namespace CMS.Backend.Controllers
         // Trang chủ: Tự động chạy khi bạn mở link https://localhost:xxxx/
         public IActionResult Index()
         {
-            // CÚ PHÁP LINQ THẦN THÁNH THEO YÊU CẦU CỦA THẦY THÁI:
-            var latestPosts = _context.Posts
-                                      .Include(p => p.Category) // Mắt xích 1: Join bảng lấy kèm thông tin tên danh mục
-                                      .OrderByDescending(p => p.CreatedDate) // Mắt xích 2: Sắp xếp ngày đăng mới nhất lên đầu trang
-                                      .Take(3) // Mắt xích 3: Cắt lấy đúng 3 bản tin đầu tiên sau khi đã xếp hạng
-                                      .ToList(); // Mắt xích 4: Chốt hạ dữ liệu và tải từ SQL Server về máy
+            var vm = new DashboardViewModel();
+            
+            // 1. Tính Tổng Doanh Thu (Lấy các chi tiết đơn hàng)
+            var orderDetails = _context.OrderDetails.ToList();
+            vm.TotalRevenue = orderDetails.Sum(od => od.Quantity * od.UnitPrice);
 
-            // Truyền danh sách 3 bài viết mới nhất này sang file giao diện Views/Home/Index.cshtml
-            return View(latestPosts);
+            // 2. Thống kê cơ bản
+            vm.TotalOrders = _context.Orders.Count();
+            vm.TotalCustomers = _context.Customers.Count();
+            vm.TotalProducts = _context.Products.Count();
+
+            // 3. 5 Đơn hàng mới nhất
+            vm.RecentOrders = _context.Orders
+                .Include(o => o.Customer)
+                .OrderByDescending(o => o.OrderDate)
+                .Take(5)
+                .ToList();
+
+            // 4. Giữ lại 3 bài viết mới nhất
+            vm.RecentPosts = _context.Posts
+                .Include(p => p.Category)
+                .OrderByDescending(p => p.CreatedDate)
+                .Take(3)
+                .ToList();
+
+            return View(vm);
         }
 
         public IActionResult Privacy()

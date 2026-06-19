@@ -1,4 +1,4 @@
-﻿//sinh vien: trieu quoc huy
+//sinh vien: trieu quoc huy
 //mssv:2123110151
 //ngay tao:15/5/26
 using System;
@@ -35,6 +35,15 @@ namespace CMS.Data.Entities
 
         [ForeignKey("CategoryProductId")]
         public virtual CategoryProduct? CategoryProduct { get; set; }
+
+        // Khóa ngoại nối tới Bảng Màu (Color)
+        public int? ColorId { get; set; }
+
+        [ForeignKey("ColorId")]
+        public virtual Color? Color { get; set; }
+
+        // Danh sách nhiều màu sắc
+        public virtual ICollection<ProductColor>? ProductColors { get; set; }
     }
 }
 

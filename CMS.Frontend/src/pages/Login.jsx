@@ -43,7 +43,7 @@ function Login({ onLogin }) {
       <div className="auth-card">
         {/* Logo */}
         <div className="auth-logo">
-          <Link to="/">AURA<span>.</span>FASHION</Link>
+          <Link to="/">NEXUS<span>.</span>TECH</Link>
         </div>
 
         <div className="auth-header">
