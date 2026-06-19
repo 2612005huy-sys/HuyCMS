@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
-import Home from './pages/Home.jsx';
-import Shop from './pages/Shop.jsx';
-import ProductDetail from './pages/ProductDetail.jsx';
-import Cart from './pages/Cart.jsx';
-import Checkout from './pages/Checkout.jsx';
+import Home from './pages/home/index.jsx';
+import Shop from './pages/shop/index.jsx';
+import ProductDetail from './pages/product-detail/index.jsx';
+import Cart from './pages/cart/index.jsx';
+import Checkout from './pages/checkout/index.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
-import BlogDetail from './pages/BlogDetail.jsx';
-import Orders from './pages/Orders.jsx';
+import BlogDetail from './pages/blog/BlogDetail.jsx';
+import Blog from './pages/blog/index.jsx';
+import Orders from './pages/orders/index.jsx';
 
 function App() {
   // Cart state initialization from localStorage
@@ -110,6 +111,7 @@ function App() {
             } />
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
             <Route path="/register" element={<Register onLogin={handleLogin} />} />
+            <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogDetail />} />
             <Route path="/orders" element={<Orders currentUser={currentUser} />} />
           </Routes>

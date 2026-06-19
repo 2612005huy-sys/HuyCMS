@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // 👤 Sinh viên: Triệu Quốc Huy
 // 🆔 MSSV: 2123110151
 // 📅 Ngày tạo/cập nhật: 23/05/2026
@@ -96,6 +96,20 @@ namespace CMS.Backend.Controllers
                 TempData["SuccessMessage"] = "Xóa danh mục sản phẩm thành công!";
             }
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("/api/CategoriesProducts")]
+        public IActionResult GetCategoriesApi()
+        {
+            var categories = _context.CategoryProducts
+                .Select(c => new {
+                    c.Id,
+                    c.Name
+                })
+                .ToList();
+            return Ok(categories);
         }
     }
 }

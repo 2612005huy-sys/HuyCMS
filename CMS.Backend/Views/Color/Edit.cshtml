@@ -1,0 +1,61 @@
+@model CMS.Data.Entities.Color
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Cập nhật màu sắc";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow-lg border-0 rounded-lg">
+        <div class="card-header bg-warning text-dark py-3">
+            <h3 class="card-title mb-0 fw-bold"><i class="bi bi-pencil-square"></i> CẬP NHẬT THÔNG TIN MÀU SẮC</h3>
+        </div>
+        <div class="card-body p-4 bg-light">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 font-weight-bold"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label asp-for="Name" class="form-label fw-bold text-dark">Tên màu sắc:</label>
+                        <input asp-for="Name" class="form-control form-control-lg border-secondary shadow-sm" placeholder="Nhập tên màu..." />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <label asp-for="HexCode" class="form-label fw-bold text-dark">Mã màu Hex:</label>
+                        <div class="input-group">
+                            <input asp-for="HexCode" type="color" class="form-control form-control-color border-secondary shadow-sm" style="max-width: 60px; padding: 5px;" id="colorPicker" />
+                            <input asp-for="HexCode" type="text" class="form-control form-control-lg border-secondary shadow-sm" id="colorText" />
+                        </div>
+                        <span asp-validation-for="HexCode" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <hr class="my-4 border-secondary" />
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-warning btn-lg font-weight-bold shadow-sm px-5">
+                        <i class="bi bi-save"></i> Cập nhật thay đổi
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary btn-lg shadow-sm px-4">
+                        Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("colorPicker").addEventListener("input", function() {
+            document.getElementById("colorText").value = this.value;
+        });
+        document.getElementById("colorText").addEventListener("input", function() {
+            let val = this.value;
+            if(val.match(/^#[0-9a-f]{6}$/i)) {
+                document.getElementById("colorPicker").value = val;
+            }
+        });
+    </script>
+}

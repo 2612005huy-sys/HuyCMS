@@ -1,6 +1,5 @@
-﻿// =========================================================================
-// 👤 Sinh viên: Triệu Quốc Huy
-// 🆔 MSSV: 2123110151
+// =========================================================================
+// 👤 Sinh viên: Triệu Quốc Huy | MSSV: 2123110151
 // 📅 Ngày tạo/cập nhật: 23/05/2026
 // 📝 Chức năng: FILE TỐI ƯU TOÀN DIỆN - Sửa lỗi đứng form Edit & Giữ ảnh cũ
 // =========================================================================
@@ -17,15 +16,12 @@ using System.Linq;
 
 namespace CMS.Backend.Controllers
 {
-    [Authorize] // 🔒 Ổ khóa bảo mật hệ thống quản trị Admin
-    public class ProductController : Controller
+    // 🔒 CHỈ cho phép tài khoản Admin và Editor vào xem, quản lý danh sách sản phẩm.
+    // ❌ Tài khoản nhóm "User" thông thường truy cập sẽ bị đá sang trang 403 ngay lập tức!
+    [Authorize(Roles = "Admin,Editor")]
+    public class ProductController(ApplicationDbContext context) : Controller
     {
-        private readonly ApplicationDbContext _context;
-
-        public ProductController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         // =========================================================================
         // 🛠️ PHẦN 1: CÁC CHỨC NĂNG QUẢN TRỊ GIAO DIỆN (MVC) - LINK: /Product
@@ -48,17 +44,19 @@ namespace CMS.Backend.Controllers
         public IActionResult Create()
         {
             ViewBag.CategoryProductList = new SelectList(_context.CategoryProducts, "Id", "Name");
+            ViewBag.ColorList = new MultiSelectList(_context.Colors, "Id", "Name");
             return View();
         }
 
         // 3. POST: /Product/Create (Xử lý hứng dữ liệu lưu sản phẩm mới)
         [HttpPost]
-        public IActionResult Create(Product model, IFormFile uploadImage)
+        public IActionResult Create(Product model, IFormFile uploadImage, List<int> ColorIds)
         {
             if (string.IsNullOrEmpty(model.Name))
             {
                 ModelState.AddModelError("Name", "Tên sản phẩm bắt buộc phải nhập!");
                 ViewBag.CategoryProductList = new SelectList(_context.CategoryProducts, "Id", "Name", model.CategoryProductId);
+                ViewBag.ColorList = new MultiSelectList(_context.Colors, "Id", "Name", ColorIds);
                 return View(model);
             }
 
@@ -84,6 +82,16 @@ namespace CMS.Backend.Controllers
             _context.Products.Add(model);
             _context.SaveChanges();
 
+            // Thêm nhiều màu
+            if (ColorIds != null && ColorIds.Count > 0)
+            {
+                foreach (var cId in ColorIds)
+                {
+                    _context.ProductColors.Add(new ProductColor { ProductId = model.Id, ColorId = cId });
+                }
+                _context.SaveChanges();
+            }
+
             TempData["SuccessMessage"] = "Thêm sản phẩm mới vào kho thành công!";
             return RedirectToAction("Index");
         }
@@ -92,25 +100,37 @@ namespace CMS.Backend.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            var product = _context.Products.Find(id);
+            var product = _context.Products.Include(p => p.ProductColors).FirstOrDefault(p => p.Id == id);
             if (product == null)
             {
                 return NotFound();
             }
 
+            var selectedColorIds = product.ProductColors?.Select(pc => pc.ColorId).ToList() ?? new List<int>();
+            ViewBag.SelectedColorsData = product.ProductColors?.Select(pc => new {
+                ColorId = pc.ColorId,
+                ImageUrl = pc.ImageUrl
+            }).ToList();
             ViewBag.CategoryProductList = new SelectList(_context.CategoryProducts, "Id", "Name", product.CategoryProductId);
+            ViewBag.ColorList = new MultiSelectList(_context.Colors, "Id", "Name", selectedColorIds);
+            
+            // Pass all colors as JSON so JS can match names
+            ViewBag.AllColorsJson = System.Text.Json.JsonSerializer.Serialize(_context.Colors.Select(c => new { c.Id, c.Name }).ToList());
+            ViewBag.SelectedColorsDataJson = System.Text.Json.JsonSerializer.Serialize(ViewBag.SelectedColorsData);
+            
             return View(product);
         }
 
         // 5. POST: /Product/Edit/5 (🌟 ĐÃ TỐI ƯU: Giải phóng Form đứng đơ, giữ ảnh cũ tuyệt đối)
         [HttpPost]
-        public IActionResult Edit(Product model, IFormFile uploadImage)
+        public IActionResult Edit(Product model, IFormFile uploadImage, List<int> ColorIds)
         {
             // Kiểm tra điều kiện thủ công thay thế ModelState.IsValid để giải phóng lỗi ép kiểu Select danh mục
             if (string.IsNullOrEmpty(model.Name))
             {
                 ModelState.AddModelError("Name", "Tên sản phẩm không được phép để trống!");
                 ViewBag.CategoryProductList = new SelectList(_context.CategoryProducts, "Id", "Name", model.CategoryProductId);
+                ViewBag.ColorList = new MultiSelectList(_context.Colors, "Id", "Name", ColorIds);
                 return View(model);
             }
 
@@ -146,6 +166,47 @@ namespace CMS.Backend.Controllers
                 _context.Products.Update(model);
                 _context.SaveChanges();
 
+                // Cập nhật ProductColors
+                var oldColors = _context.ProductColors.Where(pc => pc.ProductId == model.Id).ToList();
+                _context.ProductColors.RemoveRange(oldColors);
+                
+                if (ColorIds != null && ColorIds.Count > 0)
+                {
+                    foreach (var cId in ColorIds)
+                    {
+                        var pc = new ProductColor { ProductId = model.Id, ColorId = cId };
+                        
+                        // Check if an image was uploaded for this specific color
+                        var file = Request.Form.Files.FirstOrDefault(f => f.Name == $"variantImage_{cId}");
+                        if (file != null && file.Length > 0)
+                        {
+                            string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "variants");
+                            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                            string filePath = Path.Combine(folder, fileName);
+
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                file.CopyTo(stream);
+                            }
+                            pc.ImageUrl = "/uploads/variants/" + fileName;
+                        }
+                        else
+                        {
+                            // Keep old image url if exists
+                            var oldPc = oldColors.FirstOrDefault(o => o.ColorId == cId);
+                            if (oldPc != null)
+                            {
+                                pc.ImageUrl = oldPc.ImageUrl;
+                            }
+                        }
+
+                        _context.ProductColors.Add(pc);
+                    }
+                }
+                _context.SaveChanges();
+
                 TempData["SuccessMessage"] = "Cập nhật dữ liệu sản phẩm thành công!";
                 return RedirectToAction("Index");
             }
@@ -153,6 +214,7 @@ namespace CMS.Backend.Controllers
             {
                 ModelState.AddModelError("", "Lỗi lưu dữ liệu database: " + ex.Message);
                 ViewBag.CategoryProductList = new SelectList(_context.CategoryProducts, "Id", "Name", model.CategoryProductId);
+                ViewBag.ColorList = new MultiSelectList(_context.Colors, "Id", "Name", ColorIds);
                 return View(model);
             }
         }
@@ -175,10 +237,79 @@ namespace CMS.Backend.Controllers
         // =========================================================================
 
         [HttpGet]
-        [AllowAnonymous] // 🔓 Mở chặn bảo mật để ReactJS kéo dữ liệu mượt mà
+        [AllowAnonymous] // 🔓 Mở chặn bảo mật để ReactJS kéo dữ liệu mượt mà không dính Cookie mã hóa
         public IActionResult GetJsonAll()
         {
             var products = _context.Products
+                .Include(p => p.ProductColors).ThenInclude(pc => pc.Color)
+                .OrderByDescending(p => p.Id)
+                .Select(p => new {
+                    p.Id,
+                    p.Name,
+                    p.Description,
+                    p.Price,
+                    p.StockQuantity,
+                    p.ImageUrl,
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : "Chưa phân loại",
+                    Colors = p.ProductColors.Select(pc => new { 
+                        Id = pc.ColorId, 
+                        Name = pc.Color.Name, 
+                        HexCode = pc.Color.HexCode,
+                        ImageUrl = pc.ImageUrl
+                    }).ToList()
+                })
+                .ToList();
+
+            return Ok(products);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("/api/products")]
+        public IActionResult GetAllProductsApi()
+        {
+            // Tái sử dụng lại logic của GetJsonAll để lấy toàn bộ danh sách sản phẩm
+            return GetJsonAll();
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("/api/products/{id}")]
+        public IActionResult GetProductApi(int id)
+        {
+            var product = _context.Products
+                .Include(p => p.CategoryProduct)
+                .Include(p => p.ProductColors).ThenInclude(pc => pc.Color)
+                .Where(p => p.Id == id)
+                .Select(p => new {
+                    p.Id,
+                    p.Name,
+                    p.Description,
+                    p.Price,
+                    p.StockQuantity,
+                    p.ImageUrl,
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : "Chưa phân loại",
+                    Colors = p.ProductColors.Select(pc => new { 
+                        Id = pc.ColorId, 
+                        Name = pc.Color.Name, 
+                        HexCode = pc.Color.HexCode,
+                        ImageUrl = pc.ImageUrl
+                    }).ToList()
+                })
+                .FirstOrDefault();
+
+            if (product == null) return NotFound();
+            return Ok(product);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("/api/products/category/{categoryId}")]
+        public IActionResult GetProductsByCategoryApi(int categoryId)
+        {
+            var products = _context.Products
+                .Include(p => p.CategoryProduct)
+                .Where(p => p.CategoryProductId == categoryId)
                 .OrderByDescending(p => p.Id)
                 .Select(p => new {
                     p.Id,

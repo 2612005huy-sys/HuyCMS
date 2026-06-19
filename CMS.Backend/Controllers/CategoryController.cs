@@ -1,8 +1,7 @@
-﻿// =========================================================================
-// 👤 Sinh viên: Triệu Quốc Huy
-// 🆔 MSSV: 2123110151
-// 📅 Ngày tạo: 15/05/2026
-// 📝 Chức năng: Quản lý danh mục bài viết (Bảo mật tối cao & Chống sập dữ liệu)
+// =========================================================================
+// 👤 Sinh viên: Triệu Quốc Huy | MSSV: 2123110151
+// 📅 Ngày tạo/cập nhật: 23/05/2026
+// 📝 Chức năng: FILE TỐI ƯU HOÀN CHỈNH - Quản lý danh mục bài viết (Bảo mật & Chống sập)
 // =========================================================================
 
 using CMS.Data;
@@ -13,15 +12,12 @@ using System.Linq;
 
 namespace CMS.Backend.Controllers
 {
-    [Authorize(Roles = "Admin")] // 🔒 CHỈ ADMIN mới được quyền vào khu vực quản lý Danh mục này
-    public class CategoryController : Controller
+    // 🔒 CHỈ cho phép tài khoản Admin và Editor vào cấu hình danh mục bài viết.
+    // ❌ Tài khoản nhóm "User" thông thường truy cập sẽ bị đá sang trang 403 ngay lập tức!
+    [Authorize(Roles = "Admin,Editor")]
+    public class CategoryController(ApplicationDbContext context) : Controller
     {
-        private readonly ApplicationDbContext _context;
-
-        public CategoryController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         // GET: /Category/Index
         public IActionResult Index()
@@ -100,6 +96,23 @@ namespace CMS.Backend.Controllers
                 return RedirectToAction("Index");
             }
             return View(model);
+        }
+
+        // =========================================================================
+        // 🌟 CÁC CỔNG API TRẢ VỀ DỮ LIỆU JSON (PHỤC VỤ REACTJS)
+        // =========================================================================
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("/api/categories")]
+        public IActionResult GetCategoriesApi()
+        {
+            var categories = _context.Categories
+                .Select(c => new {
+                    c.Id,
+                    c.Name
+                })
+                .ToList();
+            return Ok(categories);
         }
     }
 }

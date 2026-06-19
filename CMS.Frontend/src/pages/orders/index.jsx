@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Package, ArrowLeft, Clock, CheckCircle2, XCircle } from 'lucide-react';
-import api from '../api.js';
+import api from '../../api.js';
 
 function Orders({ currentUser }) {
   const navigate = useNavigate();

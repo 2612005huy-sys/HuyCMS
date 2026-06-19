@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, ArrowRight, ShoppingBag, Truck, User, Phone, MapPin, FileText } from 'lucide-react';
-import api from '../api.js';
+import api from '../../api.js';
 
 function Checkout({ cart, clearCart, currentUser }) {
   const navigate = useNavigate();

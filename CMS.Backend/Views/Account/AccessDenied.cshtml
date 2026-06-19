@@ -2,13 +2,29 @@
     Layout = "_LayoutAdmin";
     ViewData["Title"] = "Từ chối quyền truy cập";
 }
+
+<!-- Nhúng thư viện Bootstrap Icons để đảm bảo luôn hiển thị được icon vòng tròn chéo -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8 text-center p-5 bg-white rounded shadow-sm">
-            <h1 class="display-1 text-danger font-weight-bold"><i class="bi bi-slash-circle-fill"></i> 403</h1>
-            <h2 class="text-dark font-weight-bold mb-3">KHÔNG CÓ QUYỀN TRUY CẬP TRANG NÀY</h2>
-            <p class="text-muted fs-5 mb-4">Tài khoản biên tập viên (Editor) của bạn không có đủ thẩm quyền điều hướng khu vực cấu hình hệ thống cấp cao. Vui lòng quay trở lại hoặc liên hệ quản trị viên.</p>
-            <a href="/Home/Index" class="btn btn-primary font-weight-bold px-4 py-2">↩️ Quay lại bảng điều khiển</a>
+            <!-- Icon 403 màu đỏ nổi bật -->
+            <h1 class="display-1 text-danger fw-bold mb-3">
+                <i class="bi bi-slash-circle-fill"></i> 403
+            </h1>
+            
+            <h2 class="text-dark fw-bold mb-3 fs-3">KHÔNG CÓ QUYỀN TRUY CẬP TRANG NÀY</h2>
+            
+            <!-- Câu thông báo thông minh: Tự động hiển thị tên tài khoản đang đăng nhập -->
+            <p class="text-muted fs-5 mb-4">
+                Xin chào <strong class="text-dark">@User.Identity?.Name</strong>, tài khoản của bạn hiện tại không có đủ thẩm quyền để điều hướng hoặc thao tác trong khu vực này. Vui lòng quay trở lại hoặc liên hệ quản trị viên cấp cao nhất để được phân quyền.
+            </p>
+            
+            <!-- Nút quay lại sử dụng thẻ điều hướng ASP.NET Core an toàn, không lo lỗi link -->
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary fw-bold px-4 py-2">
+                <i class="bi bi-arrow-left-short"></i> Quay lại bảng điều khiển
+            </a>
         </div>
     </div>
 </div>

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
@@ -10,18 +10,15 @@ using System.Linq;
 
 namespace CMS.Backend.Controllers
 {
-    [Authorize] // 🔒 Khóa bảo mật chung cho toàn bộ file (Buổi 5)
-    public class PostController : Controller
+    // 🔒 CHỈ cho phép tài khoản Admin và Editor vào. 
+    // ❌ Tài khoản "User" hoặc chưa đăng nhập sẽ bị chặn và đẩy sang trang 403!
+    [Authorize(Roles = "Admin,Editor")]
+    public class PostController(ApplicationDbContext context) : Controller
     {
-        private readonly ApplicationDbContext _context;
-
-        public PostController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         // =========================================================================
-        // 🛠️ PHẦN 1: CÁC HÀM TRẢ VỀ GIAO DIỆN QUẢN TRỊ (MVC CŨ CỦA HUY)
+        // 🛠️ PHẦN 1: CÁC HÀM TRẢ VỀ GIAO DIỆN QUẢN TRỊ (MVC)
         // =========================================================================
 
         // Đường dẫn giao diện danh sách: https://localhost:7005/Post
@@ -52,11 +49,10 @@ namespace CMS.Backend.Controllers
             return View();
         }
 
-        // THÊM BÀI VIẾT (POST) - 🌟 ĐÃ SỬA CHỐNG LỖI NULL CONTENT VÀ NULL IMAGEURL
+        // THÊM BÀI VIẾT (POST)
         [HttpPost]
         public IActionResult Create(Post model, IFormFile uploadImage)
         {
-            // 1. Kiểm tra an toàn: Không cho phép bỏ trống nội dung bài viết
             if (string.IsNullOrEmpty(model.Content))
             {
                 ModelState.AddModelError("", "Lỗi: Nội dung bài viết không được phép bỏ trống!");
@@ -64,7 +60,6 @@ namespace CMS.Backend.Controllers
                 return View(model);
             }
 
-            // 2. Kiểm tra và xử lý file ảnh đại diện bài viết
             if (uploadImage != null && uploadImage.Length > 0)
             {
                 string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
@@ -77,22 +72,20 @@ namespace CMS.Backend.Controllers
                 {
                     uploadImage.CopyTo(stream);
                 }
-                model.ImageUrl = "/uploads/" + fileName; // Gán đường dẫn ảnh vừa upload thành công
+                model.ImageUrl = "/uploads/" + fileName;
             }
             else
             {
-                // 🌟 SỬA LỖI BUỔI 6: Nếu Huy không chọn ảnh, tự động gán ảnh mặc định để SQL không bị lỗi NOT NULL
                 model.ImageUrl = "/uploads/default.jpg";
             }
 
-            // Nếu người dùng không chọn ngày, tự động lấy giờ hiện tại hệ thống
             if (model.CreatedDate == default)
             {
                 model.CreatedDate = DateTime.Now;
             }
 
             _context.Posts.Add(model);
-            _context.SaveChanges(); // An toàn 100%, lưu thẳng vào SQL Server
+            _context.SaveChanges();
             return RedirectToAction("Index");
         }
 
@@ -106,7 +99,7 @@ namespace CMS.Backend.Controllers
             return View(post);
         }
 
-        // CHỈNH SỬA BÀI VIẾT (POST) - 🌟 ĐÃ SỬA CHỐNG LỖI NULL KHI SỬA BÀI
+        // CHỈNH SỬA BÀI VIẾT (POST)
         [HttpPost]
         public IActionResult Edit(Post model, IFormFile uploadImage)
         {
@@ -133,7 +126,6 @@ namespace CMS.Backend.Controllers
             }
             else
             {
-                // Giữ lại đường dẫn ảnh cũ nếu không thực hiện upload ảnh mới thay thế
                 var oldPost = _context.Posts.AsNoTracking().FirstOrDefault(p => p.Id == model.Id);
                 if (oldPost != null)
                 {
@@ -163,12 +155,12 @@ namespace CMS.Backend.Controllers
         }
 
         // =========================================================================
-        // 🌟 PHẦN 2: CÁC CỔNG API TRẢ VỀ DỮ LIỆU JSON (BUỔI 6 - PHỤC VỤ REACTJS)
+        // 🌟 PHẦN 2: CÁC CỔNG API TRẢ VỀ DỮ LIỆU JSON (PHỤC VỤ REACTJS)
         // =========================================================================
 
-        // 1. API lấy toàn bộ danh sách chữ thô JSON (Đường dẫn: https://localhost:7005/Post/GetJsonAll)
         [HttpGet]
-        [AllowAnonymous] // Mở cửa công khai để ReactJS buổi sau gọi lấy dữ liệu không cần dính Cookie mã hóa
+        [AllowAnonymous] // Công khai cho ReactJS lấy danh sách bài viết công cộng công khai
+        [Route("/api/posts")]
         public IActionResult GetJsonAll()
         {
             var posts = _context.Posts
@@ -185,9 +177,9 @@ namespace CMS.Backend.Controllers
             return Ok(posts);
         }
 
-        // 2. API lấy chi tiết 1 bài viết dạng JSON (Đường dẫn: https://localhost:7005/Post/GetJsonDetail/5)
         [HttpGet]
-        [AllowAnonymous]
+        [AllowAnonymous] // Công khai cho ReactJS lấy chi tiết bài viết
+        [Route("/api/posts/{id}")]
         public IActionResult GetJsonDetail(int id)
         {
             var post = _context.Posts
@@ -199,7 +191,14 @@ namespace CMS.Backend.Controllers
                 return NotFound(new { message = "Không tìm thấy bài viết này trong cơ sở dữ liệu" });
             }
 
-            return Ok(post);
+            return Ok(new {
+                post.Id,
+                post.Title,
+                post.Content,
+                post.ImageUrl,
+                post.CreatedDate,
+                CategoryName = post.Category != null ? post.Category.Name : "Chưa phân loại"
+            });
         }
     }
 }

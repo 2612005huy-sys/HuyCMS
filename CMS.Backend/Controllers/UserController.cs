@@ -1,21 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
+// =========================================================================
+// 👤 Sinh viên: Triệu Quốc Huy | MSSV: 2123110151
+// 📅 Ngày tạo/cập nhật: 23/05/2026
+// 📝 Chức năng: FILE TỐI ƯU HOÀN CHỈNH - Quản lý thành viên hệ thống (CRUD)
+// =========================================================================
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization; // 🌟 BỔ SUNG: Thư viện bắt buộc để dùng thuộc tính khóa bảo mật
+using Microsoft.AspNetCore.Authorization; // 🌟 Thư viện bắt buộc để dùng thuộc tính khóa bảo mật
 using CMS.Data;
 using CMS.Data.Entities;
 using System.Linq;
 
 namespace CMS.Backend.Controllers
 {
-    [Authorize(Roles = "Admin")] // 🔒 Ổ KHÓA TỐI CAO: Chỉ tài khoản có vai trò chính xác là "Admin" mới được mở cửa vào đây
-    public class UserController : Controller
+    // 🔒 Ổ KHÓA TỐI CAO: CHỈ tài khoản có vai trò chính xác là "Admin" mới được mở cửa vào đây.
+    // ❌ Cả Editor và User thường khi bấm vào đây đều sẽ bị đẩy sang trang báo lỗi 403!
+    [Authorize(Roles = "Admin")]
+    public class UserController(ApplicationDbContext context) : Controller
     {
-        private readonly ApplicationDbContext _context;
-
-        public UserController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         // Hiển thị danh sách thành viên hệ thống
         public IActionResult Index()
@@ -87,6 +90,24 @@ namespace CMS.Backend.Controllers
                 _context.SaveChanges();
             }
             return RedirectToAction("Index");
+        }
+
+        // =========================================================================
+        // 🌟 CÁC CỔNG API TRẢ VỀ DỮ LIỆU JSON (PHỤC VỤ REACTJS / SWAGGER)
+        // =========================================================================
+        [HttpGet]
+        [Route("/api/users")]
+        public IActionResult GetUsersApi()
+        {
+            var users = _context.Users
+                .Select(u => new {
+                    u.Id,
+                    u.Username,
+                    u.FullName,
+                    u.Role
+                })
+                .ToList();
+            return Ok(users);
         }
     }
 }

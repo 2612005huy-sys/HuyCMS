@@ -1,4 +1,4 @@
-﻿// =========================================================================
+// =========================================================================
 // 👤 Sinh viên: Triệu Quốc Huy | MSSV: 2123110151
 // 📅 Ngày tạo/cập nhật: 23/05/2026
 // 📝 Chức năng: FILE HOÀN CHỈNH - Điều hướng Quản lý Khách hàng (CRUD)
@@ -13,15 +13,12 @@ using System.Linq;
 
 namespace CMS.Backend.Controllers
 {
-    [Authorize]
-    public class CustomerController : Controller
+    // 🔒 CHỈ cho phép tài khoản Admin và Editor vào quản lý danh sách khách hàng.
+    // ❌ Tài khoản nhóm "User" thông thường truy cập sẽ bị đá sang trang 403 ngay lập tức!
+    [Authorize(Roles = "Admin,Editor")]
+    public class CustomerController(ApplicationDbContext context) : Controller
     {
-        private readonly ApplicationDbContext _context;
-
-        public CustomerController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         // GET: /Customer/Index
         public IActionResult Index()
@@ -94,5 +91,130 @@ namespace CMS.Backend.Controllers
             }
             return RedirectToAction("Index");
         }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("/api/customers/login")]
+        public IActionResult LoginApi([FromBody] LoginRequest loginModel)
+        {
+            if (loginModel == null || string.IsNullOrEmpty(loginModel.Email) || string.IsNullOrEmpty(loginModel.Password))
+            {
+                return BadRequest("Invalid credentials format");
+            }
+
+            var customer = _context.Customers.FirstOrDefault(c => c.Email == loginModel.Email && c.Password == loginModel.Password);
+            if (customer == null)
+            {
+                return Unauthorized();
+            }
+            
+            return Ok(new { 
+                id = customer.Id, 
+                name = customer.FullName, 
+                email = customer.Email 
+            });
+        }
+
+        // =========================================================================
+        // 🌟 API ĐĂNG KÝ TÀI KHOẢN CHO REACTJS
+        // =========================================================================
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("/api/customers/register")]
+        public IActionResult RegisterApi([FromBody] RegisterRequest registerModel)
+        {
+            if (registerModel == null || string.IsNullOrEmpty(registerModel.Email) || string.IsNullOrEmpty(registerModel.Password) || string.IsNullOrEmpty(registerModel.FullName))
+            {
+                return BadRequest(new { message = "Vui lòng điền đầy đủ họ tên, email và mật khẩu!" });
+            }
+
+            // Kiểm tra email đã tồn tại
+            bool emailExists = _context.Customers.Any(c => c.Email == registerModel.Email);
+            if (emailExists)
+            {
+                return Conflict(new { message = "Email này đã được đăng ký. Vui lòng dùng email khác!" });
+            }
+
+            var newCustomer = new Customer
+            {
+                FullName = registerModel.FullName,
+                Email = registerModel.Email,
+                Phone = registerModel.Phone,
+                Address = registerModel.Address,
+                Password = registerModel.Password
+            };
+
+            _context.Customers.Add(newCustomer);
+            _context.SaveChanges();
+
+            return Ok(new {
+                id = newCustomer.Id,
+                name = newCustomer.FullName,
+                email = newCustomer.Email
+            });
+        }
+
+        // =========================================================================
+        // 🌟 API LẤY LỊCH SỬ ĐƠN HÀNG CỦA MỘT KHÁCH HÀNG
+        // =========================================================================
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("/api/customers/{id}/orders")]
+        public IActionResult GetCustomerOrders(int id)
+        {
+            var orders = _context.Orders
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                .Where(o => o.CustomerId == id)
+                .OrderByDescending(o => o.Id)
+                .Select(o => new
+                {
+                    id = o.Id,
+                    orderDate = o.OrderDate.ToString("dd/MM/yyyy HH:mm"),
+                    status = o.Status,
+                    itemCount = o.OrderDetails.Count,
+                    totalAmount = o.OrderDetails.Sum(d => d.Quantity * d.UnitPrice),
+                    details = o.OrderDetails.Select(d => new
+                    {
+                        productName = d.Product.Name,
+                        imageUrl = d.Product.ImageUrl
+                    }).ToList()
+                })
+                .ToList();
+
+            return Ok(orders);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("/api/customers")]
+        public IActionResult GetAllCustomersApi()
+        {
+            var customers = _context.Customers
+                .Select(c => new {
+                    c.Id,
+                    c.FullName,
+                    c.Email,
+                    c.Phone,
+                    c.Address
+                })
+                .ToList();
+            return Ok(customers);
+        }
+    }
+
+    public class LoginRequest
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class RegisterRequest
+    {
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string? Phone { get; set; }
+        public string? Address { get; set; }
+        public string Password { get; set; }
     }
 }
