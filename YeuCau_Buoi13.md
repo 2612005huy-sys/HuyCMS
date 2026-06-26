@@ -1,0 +1,4 @@
+# Yêu cầu Buổi 13
+**Trạng thái:** Đã hoàn thành
+**Tên công việc:** Tái cấu trúc modular giao diện tài khoản, tách các subcomponents và CSS độc lập, hoàn thiện trang xem chi tiết đơn hàng (OrderDetail), tối ưu hóa quy tắc trừ tồn kho và xóa sản phẩm trong đơn hàng tại trang quản trị, tích hợp trình soạn thảo giàu nội dung CKEditor 5 cho thuộc tính mô tả sản phẩm, bổ sung bộ lọc giá API sản phẩm, và xây dựng giao diện xem chi tiết sản phẩm cho Admin.
+**Chi tiết triển khai:** Phân tách thành UserProfileHeader, OrderHistoryTable, OrderDetailModal; cấu hình liên kết API lấy chi tiết đơn hàng; tách riêng tệp CSS OrderDetail.css; thiết lập cơ chế trừ tồn kho khi phê duyệt đơn hàng; tích hợp danh sách sản phẩm và hành động xóa sản phẩm khi ở trạng thái Chờ duyệt; tích hợp CKEditor 5 cho mô tả sản phẩm ở backend và render HTML ở frontend; thêm tham số minPrice, maxPrice cho API sản phẩm; xây dựng trang Details sản phẩm cho Admin và vẽ sơ đồ ERD & giao tiếp hệ thống.

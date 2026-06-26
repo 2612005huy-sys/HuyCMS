@@ -1,93 +1,30 @@
-# 🛒 HuyCMS E-Commerce System
+# 🎓 Báo Cáo Tiến Độ Đồ Án: HuyCMS E-Commerce Platform
 
-![HuyCMS Banner](https://img.shields.io/badge/HuyCMS-E--Commerce%20Platform-2563eb?style=for-the-badge)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
-
-HuyCMS là một hệ thống thương mại điện tử (E-Commerce) và quản trị nội dung (CMS) toàn diện, được phát triển với giao diện người dùng hiện đại và hệ thống backend mạnh mẽ.
-
-👤 **Tác giả:** Triệu Quốc Huy
+**Thông tin sinh viên thực hiện:**
+- **Họ và tên:** Triệu Quốc Huy
+- **Mã số sinh viên:** 2123110151
 
 ---
 
-## ✨ Tính năng nổi bật
+## 🚀 Tiến trình thực hiện dự án theo từng buổi
 
-### 🛍️ Frontend (Giao diện khách hàng)
-- **Thiết kế hiện đại:** Sử dụng phong cách thiết kế Glassmorphism, Gradient Text, Animations mượt mà và hoàn toàn tương thích với thiết bị di động (Responsive).
-- **Trải nghiệm mua sắm:** Danh mục sản phẩm, xem chi tiết sản phẩm, giỏ hàng, và đặt hàng nhanh chóng.
-- **Tùy chọn cấu hình (Variants):** Hỗ trợ chọn Màu sắc và Dung lượng bộ nhớ cho sản phẩm (ví dụ: Điện thoại, Laptop) với giá và số lượng tồn kho tự động thay đổi.
-- **Blog & Tin tức:** Hiển thị bài viết, tin tức công nghệ mới nhất.
+Dưới đây là bảng tổng hợp chi tiết các hạng mục công việc đã thực hiện qua từng buổi học:
 
-### ⚙️ Backend (Hệ thống quản trị)
-- **Admin Dashboard:** Bảng điều khiển quản lý toàn diện được xây dựng bằng ASP.NET Core MVC.
-- **Quản lý sản phẩm & Biến thể:** Quản lý kho hàng thông minh, hỗ trợ đa biến thể (Màu sắc, Dung lượng).
-- **Quản lý đơn hàng:** Theo dõi, xử lý trạng thái đơn hàng.
-- **Hệ thống gửi Email Tự động:** Tích hợp SMTP Gmail tự động gửi Email xác nhận chuyên nghiệp dạng HTML cho Khách hàng và Email báo cáo cho Chủ shop ngay khi có đơn hàng mới.
-- **RESTful API:** Cung cấp dữ liệu định dạng JSON cho ứng dụng React frontend.
-
----
-
-## 🛠️ Công nghệ sử dụng
-
-**Frontend (`/CMS.Frontend`)**
-- [React](https://reactjs.org/) + [Vite](https://vitejs.dev/)
-- React Router DOM
-- CSS3 (Vanilla CSS, Glassmorphism UI)
-- Lucide React (Icons)
-- Axios (Giao tiếp API)
-
-**Backend (`/CMS.Backend` & `/CMS.Data`)**
-- ASP.NET Core 8.0 (MVC & Web API)
-- Entity Framework Core
-- Microsoft SQL Server
-- System.Net.Mail (SMTP Email Service)
+| Buổi | Tên công việc | Trạng thái | Chi tiết triển khai |
+| :--- | :--- | :---: | :--- |
+| **Buổi 1** | Khởi tạo cấu trúc dự án 3 lớp, thiết lập cơ sở dữ liệu ChinhCMS_DB. | ✅ Đã hoàn thành | Tạo các thực thể và cấu hình kết nối database. |
+| **Buổi 2** | Quản lý đơn hàng và chi tiết đơn hàng trực quan. | ✅ Đã hoàn thành | Thiết kế bảng hiển thị danh sách hóa đơn theo trạng thái. |
+| **Buổi 3** | Xây dựng chức năng CRUD Danh mục an toàn, lọc bài viết mới nhất lên Trang chủ. | ✅ Đã hoàn thành | Khóa xóa danh mục chứa bài viết, dùng LINQ lấy 3 bài viết mới nhất. |
+| **Buổi 4** | Thiết kế giao diện quản trị Admin Panel, tích hợp tải ảnh và trình soạn thảo CKEditor 5. | ✅ Đã hoàn thành | Hoàn thiện các trang quản lý: Danh mục, Bài viết, Đơn hàng, Thành viên (User CRUD). |
+| **Buổi 5** | Bảo mật Cookie nâng cao, Phân quyền chi tiết, Quản lý sản phẩm & Danh mục sản phẩm. | ✅ Đã hoàn thành | Xác thực Cookie, mã hóa BCrypt, dọn rác ảnh cũ, cố định ổ khóa Data Protection, phân trang, ẩn nút Xóa nếu chứa sản phẩm. |
+| **Buổi 6** | Phát triển Web API RESTful & cấu hình CORS, tích hợp bộ tạo tài liệu tự động Swagger UI. | ✅ Đã hoàn thành | Xây dựng hệ thống 4 API Controllers (Bài viết, Sản phẩm, Khách hàng, Đơn hàng), băm mật khẩu BCrypt, trừ kho, Transaction checkout, CORS & Swashbuckle. |
+| **Buổi 7** | Kết nối Frontend ReactJS với Backend ASP.NET Core Web API. | ✅ Đã hoàn thành | Cấu hình CORS trên Backend, thiết lập Axios Client tập trung, xây dựng component hiển thị danh mục sản phẩm. Tự thực hiện bài tập mở rộng kết nối API danh sách sản phẩm (Grid Card, định dạng VND) và tin tức (định dạng ngày vi-VN). |
+| **Buổi 8** | Hoàn thiện trang cá nhân, xếp hạng VIP động, luồng đặt hàng thật, tách CSS và tối ưu hóa UI/UX. | ✅ Đã hoàn thành | Tách biệt trang danh sách sản phẩm và trang Bài viết chuyên biệt kèm bộ lọc chuyên mục. Tải thông tin tài khoản và tính hạng VIP động ở Frontend. Ràng buộc bảo mật thanh toán. Gửi hóa đơn lên Backend thực hiện Database Transaction trừ tồn kho. Tách CSS nhúng sang thư mục `src/assets/css`. |
+| **Buổi 9** | Nâng cấp hệ thống SEO Slug và cấu trúc dữ liệu cho thực thể sản phẩm (Product). | ✅ Đã hoàn thành | Tích hợp SlugHelper tự sinh URL thân thiện tiếng Việt không dấu, ràng buộc Unique Index SQL Server. Xây dựng API tải sản phẩm theo Slug, nâng cấp định tuyến SEO. |
+| **Buổi 10**| Tích hợp Banner Carousel động, khóa danh mục hệ thống & Sửa lỗi cuộn Sidebar. | ✅ Đã hoàn thành | Tạo bảng Banner, API Banner, CRUD Banner Admin Dashboard upload/xóa ảnh, slider động HeroBanner. Khóa cứng danh mục hệ thống (7 & 13). Sửa lỗi Sidebar cuộn. |
+| **Buổi 11**| Tái cấu trúc SPA với React Router DOM, sửa lỗi cập nhật bài viết & Căn giữa Header. | ✅ Đã hoàn thành | Tích hợp BrowserRouter/Link thay thế custom navigate, sửa tham số IFormFile cho PostController, cân bằng flex Header căn giữa menu. |
+| **Buổi 12**| Tích hợp giỏ hàng nâng cao, Live Search Autocomplete, Phân trang & Ẩn danh mục hệ thống. | ✅ Đã hoàn thành | Thiết kế lại ProductCard; ô nhập số lượng; giao diện Checkout 2 cột; AJAX đổi nhanh trạng thái Banner; phân tách Sidebar; Live-search Autocomplete; phân rã main.css thành CSS module riêng biệt; cấu hình phân trang 8 phần tử; Header thông minh Mobile; viết chú thích tiếng Việt cho toàn bộ mã nguồn. |
+| **Buổi 13**| Tái cấu trúc modular giao diện tài khoản, hoàn thiện chi tiết đơn hàng (OrderDetail), tối ưu trừ tồn kho. | ✅ Đã hoàn thành | Phân tách UserProfileHeader, OrderHistoryTable, OrderDetailModal; thiết lập cơ chế trừ tồn kho khi phê duyệt; tích hợp danh sách sản phẩm và hành động xóa sản phẩm vào trang cập nhật đơn hàng; thêm bộ lọc minPrice, maxPrice API; xây dựng trang Details cho Admin và vẽ sơ đồ ERD & giao tiếp hệ thống. |
 
 ---
-
-## 🚀 Hướng dẫn cài đặt & Chạy dự án (Local)
-
-### 1. Cấu hình Backend (C# .NET)
-1. Mở thư mục dự án bằng Visual Studio hoặc VS Code.
-2. Mở file `CMS.Backend/appsettings.json`.
-3. Cập nhật chuỗi kết nối Database `DefaultConnection` cho phù hợp với máy của bạn.
-4. Cập nhật cấu hình `EmailSettings` (Tùy chọn, để dùng tính năng gửi mail khi đặt hàng):
-   ```json
-   "EmailSettings": {
-     "SenderEmail": "your-email@gmail.com",
-     "SenderName": "HuyCMS Store",
-     "AppPassword": "your-app-password-16-chars"
-   }
-   ```
-5. Mở Package Manager Console (Visual Studio) hoặc Terminal, chạy lệnh cập nhật Database:
-   ```bash
-   Update-Database
-   # Hoặc: dotnet ef database update
-   ```
-6. Chạy (Run) project `CMS.Backend` (mặc định sẽ chạy trên `https://localhost:7005`).
-
-### 2. Cấu hình Frontend (React)
-1. Mở Terminal mới, di chuyển vào thư mục Frontend:
-   ```bash
-   cd CMS.Frontend
-   ```
-2. Cài đặt các gói phụ thuộc (Dependencies):
-   ```bash
-   npm install
-   ```
-3. Khởi động server phát triển:
-   ```bash
-   npm run dev
-   ```
-4. Mở trình duyệt và truy cập `http://localhost:5173` để trải nghiệm!
-
----
-
-## 📸 Giao diện trực quan
-
-- Giao diện người dùng với bóng mờ, card sản phẩm sắc nét.
-- Giỏ hàng tối ưu UX/UI.
-- Email thông báo HTML đẹp mắt, rõ ràng bảng giá chi tiết.
-
----
-*Dự án được xây dựng và tối ưu liên tục nhằm mục đích học tập, nghiên cứu và ứng dụng thực tiễn.*
+*Dự án được xây dựng và tối ưu liên tục qua từng buổi nhằm mục đích học tập, nghiên cứu và ứng dụng thực tiễn.*
