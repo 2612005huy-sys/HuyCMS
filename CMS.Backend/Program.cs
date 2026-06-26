@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<CMS.Backend.Services.IEmailService, CMS.Backend.Services.EmailService>();
 
 // 1. Cấu hình kết nối SQL Server
 builder.Services.AddDbContext<CMS.Data.ApplicationDbContext>(options =>
@@ -87,6 +88,21 @@ using (var scope = app.Services.CreateScope())
             IF COL_LENGTH('ProductColors', 'ImageUrl') IS NULL
             BEGIN
                 ALTER TABLE ProductColors ADD ImageUrl NVARCHAR(MAX) NULL;
+            END
+
+            IF COL_LENGTH('Products', 'IsDeleted') IS NULL
+            BEGIN
+                ALTER TABLE Products ADD IsDeleted BIT NOT NULL DEFAULT 0;
+            END
+
+            IF COL_LENGTH('Posts', 'IsDeleted') IS NULL
+            BEGIN
+                ALTER TABLE Posts ADD IsDeleted BIT NOT NULL DEFAULT 0;
+            END
+
+            IF COL_LENGTH('Products', 'VariantInventories') IS NULL
+            BEGIN
+                ALTER TABLE Products ADD VariantInventories NVARCHAR(MAX) NULL;
             END
         ");
     }

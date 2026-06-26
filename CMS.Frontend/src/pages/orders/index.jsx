@@ -99,9 +99,17 @@ function Orders({ currentUser }) {
                       <img src={resolveImageUrl(item.imageUrl)} alt={item.productName} />
                     </div>
                   ))}
-                  <div className="order-products-text">
-                    {order.details[0]?.productName} 
-                    {order.itemCount > 1 ? ` và ${order.itemCount - 1} sản phẩm khác` : ''}
+                  <div className="order-products-text" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {order.details.map((item, idx) => (
+                      <div key={idx} style={{ fontSize: '0.95rem', color: 'var(--text)' }}>
+                        <strong>{item.productName}</strong>
+                        {(item.color || item.storageCapacity) && (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '8px', padding: '2px 6px', backgroundColor: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                            {item.color ? `Màu: ${item.color}` : ''} {item.color && item.storageCapacity ? '|' : ''} {item.storageCapacity ? ` ${item.storageCapacity}` : ''}
+                          </span>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
                 

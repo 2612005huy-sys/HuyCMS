@@ -1,4 +1,4 @@
-﻿//sinh vien: trieu quoc huy
+//sinh vien: trieu quoc huy
 //mssv:2123110151
 //ngay tao:15/5/26
 
@@ -21,6 +21,9 @@ namespace CMS.Data.Entities
         // Khóa ngoại liên kết tới Category
         public int CategoryId { get; set; }
         public virtual Category Category { get; set; }
+
+        // Đánh dấu đã xóa tạm thời (Thùng rác)
+        public bool IsDeleted { get; set; } = false;
     }
 }
 

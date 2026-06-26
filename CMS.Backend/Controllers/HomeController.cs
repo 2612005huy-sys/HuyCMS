@@ -20,6 +20,25 @@ namespace CMS.Backend.Controllers
         {
             _logger = logger;
             _context = context; // Gán kết nối database vào biến cục bộ
+
+            // 🛠 TỰ ĐỘNG THÊM CỘT VÀO CSDL NẾU CHƯA CÓ (TRÁNH LỖI MIGRATION CỦA NGƯỜI DÙNG)
+            try
+            {
+                _context.Database.ExecuteSqlRaw(@"
+                    IF COL_LENGTH('OrderDetails', 'Color') IS NULL
+                    BEGIN
+                        ALTER TABLE OrderDetails ADD Color nvarchar(max) NULL;
+                    END
+                    IF COL_LENGTH('OrderDetails', 'StorageCapacity') IS NULL
+                    BEGIN
+                        ALTER TABLE OrderDetails ADD StorageCapacity nvarchar(max) NULL;
+                    END
+                ");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tự động thêm cột vào OrderDetails: " + ex.Message);
+            }
         }
 
         // Trang chủ: Tự động chạy khi bạn mở link https://localhost:xxxx/

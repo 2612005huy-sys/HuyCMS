@@ -54,7 +54,9 @@ function Checkout({ cart, clearCart, currentUser }) {
       orderDetails: cart.map(item => ({
         productId: item.id,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        color: item.selectedColor ? item.selectedColor.name : null,
+        storageCapacity: item.selectedStorage || null
       }))
     };
 

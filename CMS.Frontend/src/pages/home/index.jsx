@@ -6,6 +6,8 @@ import HeroBanner from './HeroBanner.jsx';
 import CategoryMenu from './CategoryMenu.jsx';
 import ProductGrid from './ProductGrid.jsx';
 import LatestBlog from './LatestBlog.jsx';
+import HotProducts from './HotProducts.jsx';
+import NewestProducts from './NewestProducts.jsx';
 
 function Home({ addToCart }) {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -109,11 +111,16 @@ function Home({ addToCart }) {
             handleCategoryClick={handleCategoryClick} 
           />
 
-          <ProductGrid 
-            featuredProducts={featuredProducts} 
-            loadingProducts={loadingProducts} 
-            addToCart={addToCart} 
-          />
+          {!selectedCategory && <HotProducts addToCart={addToCart} />}
+          {!selectedCategory && <NewestProducts addToCart={addToCart} />}
+
+          {selectedCategory && (
+            <ProductGrid 
+              featuredProducts={featuredProducts} 
+              loadingProducts={loadingProducts} 
+              addToCart={addToCart} 
+            />
+          )}
 
           <LatestBlog posts={posts} />
         </>

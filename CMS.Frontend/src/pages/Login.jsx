@@ -100,6 +100,15 @@ function Login({ onLogin }) {
             </div>
           </div>
 
+          <div style={{ textAlign: 'right', marginBottom: '4px' }}>
+            <Link
+              to="/forgot-password"
+              style={{ fontSize: '0.875rem', color: 'var(--accent)', fontWeight: 500 }}
+            >
+              Quên mật khẩu?
+            </Link>
+          </div>
+
           <button type="submit" className="auth-submit-btn" disabled={loading}>
             {loading ? (
               <span className="spinner" />

@@ -4,41 +4,45 @@ const CategoryMenu = ({ categories, selectedCategory, handleCategoryClick }) => 
   if (categories.length === 0) return null;
 
   return (
-    <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '10px', marginBottom: '20px' }}>
-      <button 
+    <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '15px', marginBottom: '40px', justifyContent: 'center', flexWrap: 'wrap' }}>
+      <div 
         onClick={() => handleCategoryClick(null)}
         style={{
-          padding: '8px 20px',
+          padding: '12px 28px',
           borderRadius: '30px',
-          whiteSpace: 'nowrap',
-          fontWeight: '600',
-          fontSize: '0.95rem',
-          cursor: 'pointer',
-          border: selectedCategory === null ? 'none' : '1px solid var(--border)',
-          background: selectedCategory === null ? 'var(--accent)' : 'var(--white)',
+          background: selectedCategory === null ? 'var(--accent)' : 'var(--card-bg)',
+          border: `1px solid ${selectedCategory === null ? 'var(--accent)' : 'var(--card-border)'}`,
           color: selectedCategory === null ? '#fff' : 'var(--text)',
-          transition: 'all 0.2s'
+          cursor: 'pointer',
+          transition: 'var(--transition)',
+          fontWeight: '600',
+          fontSize: '15px',
+          boxShadow: selectedCategory === null ? 'var(--glow-accent)' : 'var(--shadow-sm)',
+          whiteSpace: 'nowrap',
+          backdropFilter: 'blur(10px)'
         }}>
-        Tất cả sản phẩm
-      </button>
+        Tất cả
+      </div>
       {categories.map(cat => (
-        <button 
+        <div 
           key={cat.id}
           onClick={() => handleCategoryClick(cat.id)}
           style={{
-            padding: '8px 20px',
+            padding: '12px 28px',
             borderRadius: '30px',
-            whiteSpace: 'nowrap',
-            fontWeight: '600',
-            fontSize: '0.95rem',
-            cursor: 'pointer',
-            border: selectedCategory === cat.id ? 'none' : '1px solid var(--border)',
-            background: selectedCategory === cat.id ? 'var(--accent)' : 'var(--white)',
+            background: selectedCategory === cat.id ? 'var(--accent)' : 'var(--card-bg)',
+            border: `1px solid ${selectedCategory === cat.id ? 'var(--accent)' : 'var(--card-border)'}`,
             color: selectedCategory === cat.id ? '#fff' : 'var(--text)',
-            transition: 'all 0.2s'
+            cursor: 'pointer',
+            transition: 'var(--transition)',
+            fontWeight: '600',
+            fontSize: '15px',
+            boxShadow: selectedCategory === cat.id ? 'var(--glow-accent)' : 'var(--shadow-sm)',
+            whiteSpace: 'nowrap',
+            backdropFilter: 'blur(10px)'
           }}>
           {cat.name}
-        </button>
+        </div>
       ))}
     </div>
   );

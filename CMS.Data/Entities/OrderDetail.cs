@@ -1,4 +1,4 @@
-﻿//sinh vien: trieu quoc huy
+//sinh vien: trieu quoc huy
 //mssv:2123110151
 //ngay tao:15/5/26
 
@@ -26,6 +26,9 @@ namespace CMS.Data.Entities
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal UnitPrice { get; set; } // Giá tại thời điểm mua
+
+        public string? Color { get; set; }
+        public string? StorageCapacity { get; set; }
 
         [ForeignKey("OrderId")]
         public virtual Order? Order { get; set; }

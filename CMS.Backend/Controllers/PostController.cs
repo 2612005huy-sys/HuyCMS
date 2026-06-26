@@ -26,10 +26,10 @@ namespace CMS.Backend.Controllers
         {
             if (id == null)
             {
-                var allPosts = _context.Posts.OrderByDescending(p => p.Id).Include(p => p.Category).ToList();
+                var allPosts = _context.Posts.Where(p => !p.IsDeleted).OrderByDescending(p => p.Id).Include(p => p.Category).ToList();
                 return View("Index", allPosts);
             }
-            var filteredPosts = _context.Posts.Where(p => p.CategoryId == id).OrderByDescending(p => p.Id).Include(p => p.Category).ToList();
+            var filteredPosts = _context.Posts.Where(p => p.CategoryId == id && !p.IsDeleted).OrderByDescending(p => p.Id).Include(p => p.Category).ToList();
             return View("Index", filteredPosts);
         }
 
@@ -142,13 +142,13 @@ namespace CMS.Backend.Controllers
             return RedirectToAction("Index");
         }
 
-        // XÓA BÀI VIẾT
+        // XÓA BÀI VIẾT (Soft Delete)
         public IActionResult Delete(int id)
         {
             var post = _context.Posts.Find(id);
             if (post != null)
             {
-                _context.Posts.Remove(post);
+                post.IsDeleted = true;
                 _context.SaveChanges();
             }
             return RedirectToAction("Index");
@@ -158,16 +158,44 @@ namespace CMS.Backend.Controllers
         // 🌟 PHẦN 2: CÁC CỔNG API TRẢ VỀ DỮ LIỆU JSON (PHỤC VỤ REACTJS)
         // =========================================================================
 
+        [HttpPost]
+        [Route("/api/posts/upload-image")]
+        public async Task<IActionResult> UploadImage(Microsoft.AspNetCore.Http.IFormFile upload)
+        {
+            if (upload != null && upload.Length > 0)
+            {
+                var fileName = Guid.NewGuid().ToString() + System.IO.Path.GetExtension(upload.FileName);
+                var uploadsFolder = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                
+                if (!System.IO.Directory.Exists(uploadsFolder))
+                {
+                    System.IO.Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var filePath = System.IO.Path.Combine(uploadsFolder, fileName);
+                using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+                {
+                    await upload.CopyToAsync(stream);
+                }
+
+                var url = $"/uploads/{fileName}";
+                return Json(new { uploaded = 1, fileName = fileName, url = url });
+            }
+            return Json(new { uploaded = 0, error = new { message = "Lỗi khi tải ảnh lên." } });
+        }
+
         [HttpGet]
         [AllowAnonymous] // Công khai cho ReactJS lấy danh sách bài viết công cộng công khai
         [Route("/api/posts")]
         public IActionResult GetJsonAll()
         {
             var posts = _context.Posts
+                .Where(p => !p.IsDeleted)
                 .OrderByDescending(p => p.Id)
                 .Select(p => new {
                     p.Id,
                     p.Title,
+                    p.Content,
                     p.ImageUrl,
                     p.CreatedDate,
                     CategoryName = p.Category != null ? p.Category.Name : "Chưa phân loại"
@@ -184,7 +212,7 @@ namespace CMS.Backend.Controllers
         {
             var post = _context.Posts
                 .Include(p => p.Category)
-                .FirstOrDefault(p => p.Id == id);
+                .FirstOrDefault(p => p.Id == id && !p.IsDeleted);
 
             if (post == null)
             {

@@ -9,6 +9,8 @@ import Cart from './pages/cart/index.jsx';
 import Checkout from './pages/checkout/index.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
+import Profile from './pages/Profile.jsx';
 import BlogDetail from './pages/blog/BlogDetail.jsx';
 import Blog from './pages/blog/index.jsx';
 import Orders from './pages/orders/index.jsx';
@@ -90,32 +92,38 @@ function App() {
           currentUser={currentUser}
           onLogout={handleLogout}
         />
-        <main className="main-content">
           <Routes>
-            <Route path="/" element={<Home addToCart={addToCart} />} />
-            <Route path="/shop" element={<Shop addToCart={addToCart} />} />
-            <Route path="/product/:id" element={<ProductDetail addToCart={addToCart} />} />
-            <Route path="/cart" element={
-              <Cart 
-                cart={cart} 
-                updateQuantity={updateQuantity} 
-                removeFromCart={removeFromCart} 
-              />
-            } />
-            <Route path="/checkout" element={
-              <Checkout 
-                cart={cart} 
-                clearCart={clearCart} 
-                currentUser={currentUser}
-              />
-            } />
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
             <Route path="/register" element={<Register onLogin={handleLogin} />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogDetail />} />
-            <Route path="/orders" element={<Orders currentUser={currentUser} />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/profile" element={<Profile currentUser={currentUser} onLogin={handleLogin} />} />
+            <Route path="*" element={
+              <main className="main-content">
+                <Routes>
+                  <Route path="/" element={<Home addToCart={addToCart} />} />
+                  <Route path="/shop" element={<Shop addToCart={addToCart} />} />
+                  <Route path="/product/:id" element={<ProductDetail addToCart={addToCart} />} />
+                  <Route path="/cart" element={
+                    <Cart 
+                      cart={cart} 
+                      updateQuantity={updateQuantity} 
+                      removeFromCart={removeFromCart} 
+                    />
+                  } />
+                  <Route path="/checkout" element={
+                    <Checkout 
+                      cart={cart} 
+                      clearCart={clearCart} 
+                      currentUser={currentUser}
+                    />
+                  } />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:id" element={<BlogDetail />} />
+                  <Route path="/orders" element={<Orders currentUser={currentUser} />} />
+                </Routes>
+              </main>
+            } />
           </Routes>
-        </main>
         <Footer />
       </div>
     </Router>

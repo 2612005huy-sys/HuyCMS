@@ -1,4 +1,4 @@
-﻿@model CMS.Data.Entities.Post
+@model CMS.Data.Entities.Post
 @{
     Layout = "_LayoutAdmin";
     ViewData["Title"] = "Thêm bài viết mới";
@@ -59,7 +59,11 @@
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
     <script>
         ClassicEditor
-            .create(document.querySelector('#Content'))
+            .create(document.querySelector('#Content'), {
+                ckfinder: {
+                    uploadUrl: '/api/posts/upload-image'
+                }
+            })
             .then(editor => {
                 // 🌟 SỬA ĐẦY ĐỦ: Lắng nghe sự kiện thay đổi dữ liệu của CKEditor
                 // Mỗi khi gõ chữ, dữ liệu HTML sẽ lập tức nạp vào textarea gốc mang tên 'Content'

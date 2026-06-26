@@ -13,7 +13,7 @@ function SearchBar() {
 
   useEffect(() => {
     // Fetch all products for fast client-side suggestion
-    api.get('/Product/GetJsonAll')
+    api.get('/api/products')
       .then(res => setProducts(res.data))
       .catch(err => console.error("Lỗi tải sản phẩm cho search bar", err));
   }, []);
@@ -64,6 +64,12 @@ function SearchBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => { if (query.trim().length > 0) setIsOpen(true); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && query.trim()) {
+              setIsOpen(false);
+              navigate(`/shop?keyword=${encodeURIComponent(query.trim())}`);
+            }
+          }}
         />
         {query && (
           <button className="clear-search-btn" onClick={clearSearch}>

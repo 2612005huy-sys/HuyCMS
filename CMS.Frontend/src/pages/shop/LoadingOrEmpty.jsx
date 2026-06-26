@@ -18,8 +18,12 @@ const LoadingOrEmpty = ({ loading, empty, emptyMessage }) => {
   if (empty) {
     return (
       <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📭</div>
-        <p>{emptyMessage || 'Không có sản phẩm nào thuộc danh mục/từ khóa này.'}</p>
+        <img 
+          src="https://cdni.iconscout.com/illustration/premium/thumb/empty-state-2130362-1800926.png" 
+          alt="Không có sản phẩm" 
+          style={{ width: '200px', opacity: '0.6', marginBottom: '20px' }} 
+        />
+        <p style={{ fontSize: '1.1rem' }}>{emptyMessage || 'Không có sản phẩm nào phù hợp với tìm kiếm của bạn.'}</p>
       </div>
     );
   }

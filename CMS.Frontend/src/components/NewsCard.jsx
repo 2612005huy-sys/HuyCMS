@@ -14,11 +14,17 @@ function NewsCard({ post }) {
         : `${import.meta.env.VITE_API_BASE_URL || 'https://localhost:7005'}${post.imageUrl}`)
     : 'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop';
 
-  // Strip HTML và cắt bớt văn bản để làm tóm tắt
-  const plainSummary = stripHtml(post.summary || post.content || '');
-  const displaySummary = plainSummary.length > 120
-    ? plainSummary.slice(0, 120) + '...'
-    : plainSummary;
+  // Strip HTML và cắt bớt văn bản để làm tóm tắt (20 từ đầu tiên)
+  const plainSummary = stripHtml(post.summary || post.content || post.description || '');
+  const words = plainSummary.split(/\s+/).filter(word => word.length > 0);
+  
+  let displaySummary = words.length > 20
+    ? words.slice(0, 20).join(' ') + '...'
+    : words.join(' ');
+    
+  if (!displaySummary) {
+    displaySummary = 'Xem chi tiết bài viết...';
+  }
 
   const displayTitle = post.title || 'Bài viết';
 

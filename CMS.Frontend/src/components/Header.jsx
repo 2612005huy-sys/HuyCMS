@@ -6,7 +6,7 @@ import api from '../api.js';
 const Header = ({ cartCount, currentUser, onLogout }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     // State cho Smart Search
     const [searchQuery, setSearchQuery] = useState('');
     const [allProducts, setAllProducts] = useState([]);
@@ -41,8 +41,8 @@ const Header = ({ cartCount, currentUser, onLogout }) => {
     useEffect(() => {
         if (searchQuery.trim().length > 0) {
             const query = searchQuery.toLowerCase();
-            const filtered = allProducts.filter(p => 
-                (p.name && p.name.toLowerCase().includes(query)) || 
+            const filtered = allProducts.filter(p =>
+                (p.name && p.name.toLowerCase().includes(query)) ||
                 (p.categoryName && p.categoryName.toLowerCase().includes(query))
             ).slice(0, 5); // Tối đa 5 kết quả
             setSearchResults(filtered);
@@ -72,13 +72,13 @@ const Header = ({ cartCount, currentUser, onLogout }) => {
                 <div className="logo">
                     <Link to="/">NEXUS <span>TECH</span></Link>
                 </div>
-                
+
                 {/* Khu vực Smart Search */}
                 <div className="header-search-wrapper" ref={searchRef}>
                     <form onSubmit={handleSearchSubmit} className="header-search-form">
-                        <input 
-                            type="text" 
-                            placeholder="Tìm kiếm sản phẩm công nghệ..." 
+                        <input
+                            type="text"
+                            placeholder="Tìm kiếm sản phẩm công nghệ..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onFocus={() => searchQuery.trim() && setShowDropdown(true)}
@@ -116,9 +116,9 @@ const Header = ({ cartCount, currentUser, onLogout }) => {
                                 </div>
                             )}
                             {searchResults.length > 0 && (
-                                <Link to={`/shop?q=${encodeURIComponent(searchQuery.trim())}`} 
-                                      className="search-view-all"
-                                      onClick={() => setShowDropdown(false)}>
+                                <Link to={`/shop?q=${encodeURIComponent(searchQuery.trim())}`}
+                                    className="search-view-all"
+                                    onClick={() => setShowDropdown(false)}>
                                     Xem tất cả kết quả
                                 </Link>
                             )}
@@ -131,35 +131,54 @@ const Header = ({ cartCount, currentUser, onLogout }) => {
                         <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Trang Chủ</Link>
                     </li>
                     <li>
-                        <Link to="/shop" className={location.pathname === '/shop' ? 'active' : ''}>Sản Phẩm</Link>
+                        <Link to="/shop" className={location.pathname === '/shop' ? 'active' : ''}>Cửa Hàng</Link>
                     </li>
                     <li>
                         <Link to="/blog" className={location.pathname.includes('/blog') ? 'active' : ''}>Tin Tức</Link>
                     </li>
                 </ul>
-                
+
                 <div className="header-actions">
                     <Link to="/cart" className="cart-icon-btn" title="Giỏ hàng">
                         <ShoppingBag size={22} />
                         {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
                     </Link>
-                    
+
                     {currentUser ? (
-                        <div className="user-menu-container" ref={userMenuRef} style={{ position: 'relative' }}>
-                            <button 
-                                className="user-profile-btn" 
+                        <div className="user-menu-container" ref={userMenuRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <button
+                                className="user-profile-btn"
                                 onClick={() => setShowUserDropdown(!showUserDropdown)}
-                                style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
+                                style={{ 
+                                    border: 'none', 
+                                    background: 'rgba(255, 255, 255, 0.05)', 
+                                    cursor: 'pointer', 
+                                    color: 'var(--text)', 
+                                    fontWeight: '600', 
+                                    fontSize: '0.95rem',
+                                    padding: '8px 16px',
+                                    borderRadius: 'var(--radius-lg)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    transition: 'var(--transition)'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
                             >
-                                <User size={22} />
+                                <User size={18} />
+                                Xin chào, {currentUser.name || currentUser.username || currentUser.fullName || "Khách hàng"}
                             </button>
-                            
+
                             {showUserDropdown && (
                                 <div className="user-dropdown-menu">
                                     <div className="user-dropdown-header">
-                                        <div className="user-name">{currentUser.name || currentUser.username || "Khách hàng"}</div>
+                                        <div className="user-name">{currentUser.name || currentUser.username || currentUser.fullName || "Khách hàng"}</div>
                                         <div className="user-email">{currentUser.email || currentUser.phone || ""}</div>
                                     </div>
+                                    <Link to="/profile" onClick={() => setShowUserDropdown(false)} className="user-dropdown-item">
+                                        <User size={16} /> Thông tin khách hàng
+                                    </Link>
                                     <Link to="/orders" onClick={() => setShowUserDropdown(false)} className="user-dropdown-item">
                                         <LogOut size={16} style={{ transform: 'rotate(180deg)', opacity: 0 }} /> Lịch sử đơn hàng
                                     </Link>
@@ -170,9 +189,41 @@ const Header = ({ cartCount, currentUser, onLogout }) => {
                             )}
                         </div>
                     ) : (
-                        <Link to="/login" className="user-profile-btn" title="Đăng nhập">
-                            <User size={22} />
-                        </Link>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginLeft: '10px' }}>
+                            <Link to="/login" style={{ 
+                                color: 'var(--text)', 
+                                fontWeight: 600, 
+                                fontSize: '0.95rem',
+                                padding: '8px 16px',
+                                borderRadius: 'var(--radius-lg)',
+                                transition: 'var(--transition)',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+                            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
+                                Đăng nhập
+                            </Link>
+                            <Link to="/register" style={{ 
+                                background: 'var(--accent)', 
+                                color: '#ffffff', 
+                                fontWeight: 600, 
+                                fontSize: '0.95rem',
+                                padding: '8px 18px',
+                                borderRadius: 'var(--radius-lg)',
+                                transition: 'var(--transition)',
+                                whiteSpace: 'nowrap'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = 'var(--accent-hover)';
+                                e.currentTarget.style.boxShadow = 'var(--glow-accent)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = 'var(--accent)';
+                                e.currentTarget.style.boxShadow = 'none';
+                            }}>
+                                Đăng ký
+                            </Link>
+                        </div>
                     )}
                 </div>
             </div>

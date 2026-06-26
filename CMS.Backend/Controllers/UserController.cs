@@ -45,6 +45,10 @@ namespace CMS.Backend.Controllers
                 return View(model);
             }
 
+            if (!string.IsNullOrEmpty(model.PasswordHash))
+            {
+                model.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.PasswordHash);
+            }
             _context.Users.Add(model);
             _context.SaveChanges();
             return RedirectToAction("Index");
@@ -68,7 +72,7 @@ namespace CMS.Backend.Controllers
 
             if (!string.IsNullOrEmpty(NewPassword))
             {
-                model.PasswordHash = NewPassword; // Gán mật khẩu mới nhập
+                model.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewPassword); // Gán mật khẩu mới nhập
             }
             else
             {

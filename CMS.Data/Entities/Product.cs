@@ -44,6 +44,12 @@ namespace CMS.Data.Entities
 
         // Danh sách nhiều màu sắc
         public virtual ICollection<ProductColor>? ProductColors { get; set; }
+
+        // Đánh dấu đã xóa tạm thời (Thùng rác)
+        public bool IsDeleted { get; set; } = false;
+
+        // Lưu trữ ma trận tồn kho biến thể Màu sắc + GB (JSON)
+        public string? VariantInventories { get; set; }
     }
 }
 

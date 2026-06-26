@@ -58,14 +58,26 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Giá bán hiện tại (VNĐ):</label>
+                            <label class="form-label fw-bold">Dung lượng GB (Nhập cách nhau bằng dấu phẩy):</label>
+                            <input id="StorageOptionsInput" type="text" class="form-control" placeholder="Ví dụ: 128GB, 256GB, 512GB" value="128GB, 256GB" />
+                            <small class="text-muted">Dung lượng sẽ kết hợp với màu sắc tạo ra ma trận kho hàng.</small>
+                        </div>
+
+                        <!-- Container cho ảnh theo màu -->
+                        <div id="variantImagesContainer" class="mb-3 p-3 bg-white border rounded d-none">
+                            <label class="form-label fw-bold text-primary mb-2" style="font-size: 0.9rem;">Cập nhật ảnh cho từng màu:</label>
+                            <div id="variantList"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Giá gốc sản phẩm (VNĐ):</label>
                             <input asp-for="Price" type="number" step="0.01" class="form-control fw-bold text-danger" required />
                             <span asp-validation-for="Price" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Số lượng tồn kho:</label>
-                            <input asp-for="StockQuantity" type="number" class="form-control" required />
+                            <label class="form-label fw-bold">Tổng tồn kho (Tự động cộng dồn):</label>
+                            <input asp-for="StockQuantity" type="number" class="form-control" readonly required style="background-color: #e9ecef;" />
                             <span asp-validation-for="StockQuantity" class="text-danger small"></span>
                         </div>
 
@@ -79,11 +91,42 @@
                         </div>
 
                         <hr />
+                        <input type="hidden" asp-for="VariantInventories" id="VariantInventories" />
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-warning font-weight-bold text-dark">
                                 <i class="bi bi-download"></i> Cập nhật thay đổi
                             </button>
                             <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BẢNG MA TRẬN BIẾN THỂ -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card border border-warning">
+                            <div class="card-header bg-warning bg-gradient text-dark fw-bold">
+                                <i class="bi bi-grid-3x3-gap"></i> MA TRẬN PHÂN CHIA TỒN KHO & GIÁ CHÊNH LỆCH THEO BIẾN THỂ
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped align-middle mb-0 text-center" id="VariantMatrixTable">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Màu sắc</th>
+                                                <th>Dung lượng (GB)</th>
+                                                <th style="width: 25%;">Số lượng tồn kho (Chi tiết)</th>
+                                                <th style="width: 30%;">Giá chênh lệch (Cộng thêm VNĐ)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="VariantMatrixBody">
+                                            <tr>
+                                                <td colspan="4" class="text-muted py-3">Vui lòng chọn màu sắc và nhập dung lượng để tạo ma trận kho hàng...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -95,6 +138,7 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
+        // --- PHẦN 1: UPLOAD ẢNH THEO MÀU SẮC ---
         const allColors = @Html.Raw(ViewBag.AllColorsJson ?? "[]");
         const existingVariantData = @Html.Raw(ViewBag.SelectedColorsDataJson ?? "[]");
         
@@ -137,5 +181,131 @@
 
         colorSelect.addEventListener('change', renderVariantInputs);
         renderVariantInputs(); // Render lần đầu khi load trang
+
+
+        // --- PHẦN 2: MA TRẬN BIẾN THỂ TỒN KHO & GB ---
+        $(document).ready(function () {
+            // Load dữ liệu ma trận cũ từ DB
+            var existingMatrix = [];
+            try {
+                var rawJson = '@Html.Raw(Model.VariantInventories ?? "[]")';
+                if (rawJson && rawJson.trim() !== "") {
+                    existingMatrix = JSON.parse(rawJson);
+                }
+            } catch (e) {
+                console.error("Lỗi parse JSON VariantInventories:", e);
+            }
+
+            // Phân tích danh sách dung lượng cũ để điền vào ô input
+            if (existingMatrix && existingMatrix.length > 0) {
+                var uniqueStorages = [];
+                existingMatrix.forEach(function (item) {
+                    if (item.Storage && uniqueStorages.indexOf(item.Storage) === -1) {
+                        uniqueStorages.push(item.Storage);
+                    }
+                });
+                if (uniqueStorages.length > 0) {
+                    $('#StorageOptionsInput').val(uniqueStorages.join(', '));
+                }
+            }
+
+            // Lắng nghe sự kiện để sinh ma trận tự động
+            $('#colorSelect, #StorageOptionsInput').on('change input', function () {
+                generateMatrix();
+            });
+
+            // Lắng nghe nhập tồn kho chi tiết để cộng dồn lên tổng tồn kho
+            $(document).on('input', '.variant-stock', function () {
+                calculateTotalStock();
+            });
+
+            // Khi submit form, đóng gói bảng thành JSON
+            $('form').on('submit', function () {
+                var matrix = [];
+                $('.variant-row').each(function () {
+                    var colorId = $(this).data('color-id');
+                    var colorName = $(this).data('color-name');
+                    var storage = $(this).data('storage');
+                    var stock = parseInt($(this).find('.variant-stock').val()) || 0;
+                    var priceDiff = parseFloat($(this).find('.variant-pricediff').val()) || 0;
+
+                    matrix.push({
+                        ColorId: colorId,
+                        ColorName: colorName,
+                        Storage: storage,
+                        Stock: stock,
+                        PriceDifference: priceDiff
+                    });
+                });
+                $('#VariantInventories').val(JSON.stringify(matrix));
+            });
+
+            function generateMatrix() {
+                var selectedColors = [];
+                $('#colorSelect option:selected').each(function () {
+                    selectedColors.push({
+                        id: $(this).val(),
+                        name: $(this).text()
+                    });
+                });
+
+                var storageText = $('#StorageOptionsInput').val() || "";
+                var storages = storageText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+                var tbody = $('#VariantMatrixBody');
+                tbody.empty();
+
+                if (selectedColors.length === 0 || storages.length === 0) {
+                    tbody.append('<tr><td colspan="4" class="text-muted py-3">Vui lòng chọn màu sắc và nhập dung lượng để tạo ma trận kho hàng...</td></tr>');
+                    $('#StockQuantity').val(0);
+                    return;
+                }
+
+                selectedColors.forEach(function (color) {
+                    storages.forEach(function (storage) {
+                        // Tìm xem biến thể này đã có dữ liệu cũ trong DB chưa
+                        var oldStock = 10;
+                        var oldPriceDiff = 0;
+                        
+                        var matchedOld = existingMatrix.find(item => item.ColorId == color.id && item.Storage == storage);
+                        if (matchedOld) {
+                            oldStock = matchedOld.Stock;
+                            oldPriceDiff = matchedOld.PriceDifference;
+                        }
+
+                        var row = `
+                            <tr class="variant-row" data-color-id="${color.id}" data-color-name="${color.name}" data-storage="${storage}">
+                                <td><span class="badge bg-secondary px-3 py-2 fs-6">${color.name}</span></td>
+                                <td><span class="badge bg-dark px-3 py-2 fs-6">${storage}</span></td>
+                                <td>
+                                    <input type="number" class="form-control text-center variant-stock" value="${oldStock}" min="0" placeholder="Số lượng..." />
+                                </td>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+</span>
+                                        <input type="number" class="form-control text-center variant-pricediff" value="${oldPriceDiff}" min="0" placeholder="Giá cộng thêm..." />
+                                        <span class="input-group-text">đ</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.append(row);
+                    });
+                });
+
+                calculateTotalStock();
+            }
+
+            function calculateTotalStock() {
+                var total = 0;
+                $('.variant-stock').each(function () {
+                    total += parseInt($(this).val()) || 0;
+                });
+                $('#StockQuantity').val(total);
+            }
+
+            // Chạy lần đầu tiên để dựng ma trận dựa trên dữ liệu cũ đã load
+            generateMatrix();
+        });
     </script>
 }

@@ -15,7 +15,7 @@ const CartTable = ({ cart, updateQuantity, removeFromCart }) => {
           : 'https://images.unsplash.com/photo-1548624313-0396c75e4b1a?q=80&w=500&auto=format&fit=crop';
 
         return (
-          <div key={`${item.id}-${item.selectedColor?.id || 'nocolor'}`} className="cart-item">
+          <div key={`${item.id}-${item.selectedColor?.id || 'nocolor'}-${item.selectedStorage || 'nostorage'}`} className="cart-item">
             <div className="cart-item-image">
               <img src={resolvedImageUrl} alt={item.name} />
             </div>
@@ -24,11 +24,19 @@ const CartTable = ({ cart, updateQuantity, removeFromCart }) => {
               <Link to={`/product/${item.id}`} className="cart-item-name">
                 {item.name}
               </Link>
-              {item.selectedColor && (
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
-                  Màu: <strong>{item.selectedColor.name}</strong>
-                </span>
-              )}
+              
+              <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+                {item.selectedColor && (
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                    Màu: <strong>{item.selectedColor.name}</strong>
+                  </span>
+                )}
+                {item.selectedStorage && (
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                    Dung lượng: <strong>{item.selectedStorage}</strong>
+                  </span>
+                )}
+              </div>
 
               <div className="cart-item-pricing">
                 <span className="cart-item-price">

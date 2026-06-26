@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import api from '../../api.js';
@@ -7,17 +7,47 @@ import ProductInfo from './ProductInfo.jsx';
 function ProductDetail({ addToCart }) {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // ──── TẤT CẢ HOOKS PHẢI KHAI BÁO Ở ĐÂY, TRƯỚC MỌI RETURN ────
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedStorage, setSelectedStorage] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+  const [toastType, setToastType] = useState('success');
 
-  // Tự động chọn màu đầu tiên khi sản phẩm tải xong
+  // Phân tích ma trận tồn kho biến thể (xử lý cả dạng string JSON lẫn mảng)
+  const variantInventories = useMemo(() => {
+    if (!product || !product.variantInventories) return [];
+    if (typeof product.variantInventories === 'string') {
+      try {
+        return JSON.parse(product.variantInventories);
+      } catch (e) {
+        console.error("Lỗi parse variantInventories:", e);
+        return [];
+      }
+    }
+    if (Array.isArray(product.variantInventories)) {
+      return product.variantInventories;
+    }
+    return [];
+  }, [product]);
+
+  const uniqueStorages = useMemo(
+    () => [...new Set(variantInventories.map(v => v.Storage))],
+    [variantInventories]
+  );
+
+  // Tự động chọn màu và dung lượng đầu tiên khi sản phẩm tải xong
   useEffect(() => {
     if (product?.colors?.length > 0 && !selectedColor) {
       setSelectedColor(product.colors[0].id);
     }
-  }, [product, selectedColor]);
+    if (uniqueStorages.length > 0 && !selectedStorage) {
+      setSelectedStorage(uniqueStorages[0]);
+    }
+  }, [product, selectedColor, selectedStorage, uniqueStorages]);
 
   // Lấy thông tin chi tiết sản phẩm từ API
   useEffect(() => {
@@ -33,8 +63,19 @@ function ProductDetail({ addToCart }) {
       });
   }, [id]);
 
+  const showToast = useCallback((message, type = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setTimeout(() => setToastMessage(null), 3000);
+  }, []);
+
+  // ──── SAU KHI ĐÃ KHAI BÁO HẾT HOOKS MỚI ĐƯỢC DÙNG RETURN SỚM ────
   if (loading) {
-    return <div style={{ padding: '40px 0', textAlign: 'center' }}>Đang tải thông tin sản phẩm...</div>;
+    return (
+      <div style={{ padding: '80px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '1.1rem' }}>
+        Đang tải thông tin sản phẩm...
+      </div>
+    );
   }
 
   if (!product) {
@@ -49,7 +90,17 @@ function ProductDetail({ addToCart }) {
     );
   }
 
-  const isOutOfStock = product.stockQuantity <= 0;
+  // Tìm biến thể đang chọn (kết hợp màu sắc + dung lượng)
+  const currentVariant = variantInventories.find(
+    v => v.ColorId === selectedColor && v.Storage === selectedStorage
+  );
+
+  // Xác định tồn kho, giá bán và trạng thái hết hàng
+  const hasVariants = variantInventories.length > 0;
+  const variantStock = currentVariant ? currentVariant.Stock : 0;
+  const displayPrice = product.price + (currentVariant ? currentVariant.PriceDifference : 0);
+  const isOutOfStock = hasVariants ? (variantStock <= 0) : (product.stockQuantity <= 0);
+  const displayStock = hasVariants ? variantStock : product.stockQuantity;
 
   // Tìm đối tượng màu đang chọn để lấy ảnh riêng (nếu có)
   const chosenColorForImage = product.colors?.find(c => c.id === selectedColor);
@@ -67,18 +118,47 @@ function ProductDetail({ addToCart }) {
   const handleQtyChange = (type) => {
     if (type === 'dec' && quantity > 1) {
       setQuantity(quantity - 1);
-    } else if (type === 'inc' && quantity < product.stockQuantity) {
+    } else if (type === 'inc' && quantity < displayStock) {
       setQuantity(quantity + 1);
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (isOutOfStock) return;
-    const chosenColor = product.colors?.find(c => c.id === selectedColor);
-    const productToCart = { ...product, selectedColor: chosenColor };
-    addToCart(productToCart, quantity);
-    const colorText = chosenColor ? ` (Màu: ${chosenColor.name})` : '';
-    alert(`Đã thêm ${quantity} sản phẩm "${product.name}"${colorText} vào giỏ hàng!`);
+
+    try {
+      // Validate with API for latest stock
+      const res = await api.get(`/api/products/${product.id}`);
+      const latestProduct = res.data;
+      const latestVariantInventories = Array.isArray(latestProduct.variantInventories)
+        ? latestProduct.variantInventories
+        : (typeof latestProduct.variantInventories === 'string' ? JSON.parse(latestProduct.variantInventories || '[]') : []);
+      const latestVariant = latestVariantInventories.find(
+        v => v.ColorId === selectedColor && v.Storage === selectedStorage
+      );
+      const latestStock = hasVariants ? (latestVariant ? latestVariant.Stock : 0) : latestProduct.stockQuantity;
+
+      if (quantity > latestStock) {
+        showToast(`Lỗi: Số lượng sản phẩm tồn kho chỉ còn ${latestStock}.`, 'error');
+        return;
+      }
+
+      const chosenColor = product.colors?.find(c => c.id === selectedColor);
+      const chosenStorage = selectedStorage;
+      const productToCart = { 
+        ...product, 
+        price: displayPrice, 
+        selectedColor: chosenColor, 
+        selectedStorage: chosenStorage 
+      };
+      
+      addToCart(productToCart, quantity);
+      const colorText = chosenColor ? ` (${chosenColor.name})` : '';
+      const storageText = chosenStorage ? ` [${chosenStorage}]` : '';
+      showToast(`Đã thêm ${quantity} sản phẩm "${product.name}"${colorText}${storageText} vào giỏ hàng!`, 'success');
+    } catch (error) {
+      showToast('Lỗi kết nối máy chủ khi kiểm tra tồn kho.', 'error');
+    }
   };
 
   return (
@@ -102,12 +182,35 @@ function ProductDetail({ addToCart }) {
           product={product}
           selectedColor={selectedColor}
           setSelectedColor={setSelectedColor}
+          selectedStorage={selectedStorage}
+          setSelectedStorage={setSelectedStorage}
+          uniqueStorages={uniqueStorages}
+          displayPrice={displayPrice}
+          displayStock={displayStock}
           quantity={quantity}
           handleQtyChange={handleQtyChange}
           handleAddToCart={handleAddToCart}
           isOutOfStock={isOutOfStock}
         />
       </div>
+
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: '30px',
+          right: '30px',
+          background: toastType === 'error' ? '#ff4757' : '#2ed573',
+          color: '#fff',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          fontWeight: 'bold',
+          animation: 'fadeInUp 0.3s ease-out'
+        }}>
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 }

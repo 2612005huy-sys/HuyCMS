@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
@@ -35,9 +35,23 @@ namespace CMS.Backend.Controllers
         public async Task<IActionResult> Login(string username, string password)
         {
             // 1. Đối soát tài khoản thô trực tiếp trong bảng Users của Database
-            var user = _context.Users.FirstOrDefault(u => u.Username == username && u.PasswordHash == password);
-
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
+            bool isPasswordValid = false;
+            
             if (user != null)
+            {
+                if (user.PasswordHash.StartsWith("$2"))
+                {
+                    isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+                }
+                else
+                {
+                    // Fallback for old plaintext passwords
+                    isPasswordValid = user.PasswordHash == password;
+                }
+            }
+
+            if (user != null && isPasswordValid)
             {
                 // 2. Thiết lập các thông tin Claims đi kèm thẻ bài
                 var claims = new List<Claim>

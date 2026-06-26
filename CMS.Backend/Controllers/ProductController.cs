@@ -27,12 +27,12 @@ namespace CMS.Backend.Controllers
         // 🛠️ PHẦN 1: CÁC CHỨC NĂNG QUẢN TRỊ GIAO DIỆN (MVC) - LINK: /Product
         // =========================================================================
 
-        // 1. GET: /Product/Index (Trang hiển thị danh sách sản phẩm kho)
         [HttpGet]
         public IActionResult Index()
         {
             var products = _context.Products
                 .Include(p => p.CategoryProduct)
+                .Where(p => !p.IsDeleted)
                 .OrderByDescending(p => p.Id)
                 .ToList();
 
@@ -225,9 +225,9 @@ namespace CMS.Backend.Controllers
             var product = _context.Products.Find(id);
             if (product != null)
             {
-                _context.Products.Remove(product);
+                product.IsDeleted = true;
                 _context.SaveChanges();
-                TempData["SuccessMessage"] = "Đã xóa sản phẩm khỏi danh mục quản trị thành công!";
+                TempData["SuccessMessage"] = "Đã đưa sản phẩm vào thùng rác thành công!";
             }
             return RedirectToAction("Index");
         }
@@ -242,6 +242,7 @@ namespace CMS.Backend.Controllers
         {
             var products = _context.Products
                 .Include(p => p.ProductColors).ThenInclude(pc => pc.Color)
+                .Where(p => !p.IsDeleted)
                 .OrderByDescending(p => p.Id)
                 .Select(p => new {
                     p.Id,
@@ -250,13 +251,15 @@ namespace CMS.Backend.Controllers
                     p.Price,
                     p.StockQuantity,
                     p.ImageUrl,
+                    p.VariantInventories,
                     CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : "Chưa phân loại",
                     Colors = p.ProductColors.Select(pc => new { 
                         Id = pc.ColorId, 
                         Name = pc.Color.Name, 
                         HexCode = pc.Color.HexCode,
                         ImageUrl = pc.ImageUrl
-                    }).ToList()
+                    }).ToList(),
+                    SoldCount = _context.OrderDetails.Where(od => od.ProductId == p.Id).Sum(od => (int?)od.Quantity) ?? 0
                 })
                 .ToList();
 
@@ -266,10 +269,85 @@ namespace CMS.Backend.Controllers
         [HttpGet]
         [AllowAnonymous]
         [Route("/api/products")]
-        public IActionResult GetAllProductsApi()
+        public IActionResult GetAllProductsApi(string keyword = null, decimal? minPrice = null, decimal? maxPrice = null)
         {
-            // Tái sử dụng lại logic của GetJsonAll để lấy toàn bộ danh sách sản phẩm
-            return GetJsonAll();
+            var query = _context.Products
+                .Include(p => p.ProductColors).ThenInclude(pc => pc.Color)
+                .Where(p => !p.IsDeleted)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                query = query.Where(p => p.Name.Contains(keyword) || (p.Description != null && p.Description.Contains(keyword)));
+            }
+            if (minPrice.HasValue)
+            {
+                query = query.Where(p => p.Price >= minPrice.Value);
+            }
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(p => p.Price <= maxPrice.Value);
+            }
+
+            var products = query
+                .OrderByDescending(p => p.Id)
+                .Select(p => new {
+                    p.Id,
+                    p.Name,
+                    p.Description,
+                    p.Price,
+                    p.StockQuantity,
+                    p.ImageUrl,
+                    p.VariantInventories,
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : "Chưa phân loại",
+                    Colors = p.ProductColors.Select(pc => new { 
+                        Id = pc.ColorId, 
+                        Name = pc.Color.Name, 
+                        HexCode = pc.Color.HexCode,
+                        ImageUrl = pc.ImageUrl
+                    }).ToList(),
+                    SoldCount = _context.OrderDetails.Where(od => od.ProductId == p.Id).Sum(od => (int?)od.Quantity) ?? 0
+                })
+                .ToList();
+
+            return Ok(products);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("/api/products/newest")]
+        public IActionResult GetNewestProductsApi()
+        {
+            var products = _context.Products
+                .Include(p => p.ProductColors).ThenInclude(pc => pc.Color)
+                .Where(p => !p.IsDeleted)
+                .OrderByDescending(p => p.Id)
+                .Take(3)
+                .Select(p => new {
+                    p.Id, p.Name, p.Description, p.Price, p.ImageUrl,
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : "Chưa phân loại"
+                })
+                .ToList();
+            return Ok(products);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("/api/products/hot")]
+        public IActionResult GetHotProductsApi()
+        {
+            var products = _context.Products
+                .Include(p => p.ProductColors).ThenInclude(pc => pc.Color)
+                .Where(p => !p.IsDeleted)
+                .Select(p => new {
+                    p.Id, p.Name, p.Description, p.Price, p.ImageUrl,
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : "Chưa phân loại",
+                    SoldCount = _context.OrderDetails.Where(od => od.ProductId == p.Id).Sum(od => (int?)od.Quantity) ?? 0
+                })
+                .OrderByDescending(x => x.SoldCount)
+                .Take(3)
+                .ToList();
+            return Ok(products);
         }
 
         [HttpGet]
@@ -280,7 +358,7 @@ namespace CMS.Backend.Controllers
             var product = _context.Products
                 .Include(p => p.CategoryProduct)
                 .Include(p => p.ProductColors).ThenInclude(pc => pc.Color)
-                .Where(p => p.Id == id)
+                .Where(p => p.Id == id && !p.IsDeleted)
                 .Select(p => new {
                     p.Id,
                     p.Name,
@@ -288,13 +366,15 @@ namespace CMS.Backend.Controllers
                     p.Price,
                     p.StockQuantity,
                     p.ImageUrl,
+                    p.VariantInventories,
                     CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : "Chưa phân loại",
                     Colors = p.ProductColors.Select(pc => new { 
                         Id = pc.ColorId, 
                         Name = pc.Color.Name, 
                         HexCode = pc.Color.HexCode,
                         ImageUrl = pc.ImageUrl
-                    }).ToList()
+                    }).ToList(),
+                    SoldCount = _context.OrderDetails.Where(od => od.ProductId == p.Id).Sum(od => (int?)od.Quantity) ?? 0
                 })
                 .FirstOrDefault();
 
@@ -309,7 +389,7 @@ namespace CMS.Backend.Controllers
         {
             var products = _context.Products
                 .Include(p => p.CategoryProduct)
-                .Where(p => p.CategoryProductId == categoryId)
+                .Where(p => p.CategoryProductId == categoryId && !p.IsDeleted)
                 .OrderByDescending(p => p.Id)
                 .Select(p => new {
                     p.Id,
@@ -318,6 +398,7 @@ namespace CMS.Backend.Controllers
                     p.Price,
                     p.StockQuantity,
                     p.ImageUrl,
+                    p.VariantInventories,
                     CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : "Chưa phân loại"
                 })
                 .ToList();
